@@ -18,35 +18,35 @@ public class Logger {
   /**
    * This function logs the predefined message with the attached args
    *
-   * @param logMessages The predefined log message
+   * @param logMessage The predefined log message
    * @param args Variable list of arguments that will be added to the log message
    */
-  public void log(LogMessages logMessages, Object... args) {
-    if (logAt(logMessages)) {
-      if (logMessages.getParameterCount() != args.length) {
-        localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}", logMessages.getParameterCount(), args.length);
+  public void log(LogMessage logMessage, Object... args) {
+    if (logAt(logMessage)) {
+      if (logMessage.getParameterCount() != args.length) {
+        localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}", logMessage.getParameterCount(), args.length);
       }
 
-      ThreadContext.put(CATEGORY, logMessages.getCategory().getDescription());
-      switch (logMessages.getLevel()) {
+      ThreadContext.put(CATEGORY, logMessage.getCategory().getDescription());
+      switch (logMessage.getLevel()) {
         case TRACE:
-          localLogger.trace(logMessages.getMessage(), args);
+          localLogger.trace(logMessage.getMessage(), args);
           break;
 
         case DEBUG:
-          localLogger.debug(logMessages.getMessage(), args);
+          localLogger.debug(logMessage.getMessage(), args);
           break;
 
         case INFO:
-          localLogger.info(logMessages.getMessage(), args);
+          localLogger.info(logMessage.getMessage(), args);
           break;
 
         case WARN:
-          localLogger.warn(logMessages.getMessage(), args);
+          localLogger.warn(logMessage.getMessage(), args);
           break;
 
         case ERROR:
-          localLogger.error(logMessages.getMessage(), args);
+          localLogger.error(logMessage.getMessage(), args);
           break;
 
         default:
@@ -58,26 +58,26 @@ public class Logger {
   /**
    * This function logs the predefined message with the attached args and the exception
    *
-   * @param logMessages The predefined log message
+   * @param logMessage The predefined log message
    * @param throwable An exception that needs to be logged
    * @param args A list of variable arguments to be logged
    */
-  public void log(LogMessages logMessages, Throwable throwable, Object... args) {
-    if (logMessages.getParameterCount() != args.length) {
+  public void log(LogMessage logMessage, Throwable throwable, Object... args) {
+    if (logMessage.getParameterCount() != args.length) {
       localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}",
-          logMessages.getParameterCount(),
+          logMessage.getParameterCount(),
           args.length);
     }
 
-    ThreadContext.put(CATEGORY, logMessages.getCategory().getDescription());
-    switch (logMessages.getLevel()) {
+    ThreadContext.put(CATEGORY, logMessage.getCategory().getDescription());
+    switch (logMessage.getLevel()) {
       case TRACE:
         if (isTraceEnabled()) {
           localLogger
               .atTrace()
               .withThrowable(throwable)
               .withLocation()
-              .log(logMessages.getMessage(), args);
+              .log(logMessage.getMessage(), args);
         }
         break;
 
@@ -87,7 +87,7 @@ public class Logger {
               .atDebug()
               .withThrowable(throwable)
               .withLocation()
-              .log(logMessages.getMessage(), args);
+              .log(logMessage.getMessage(), args);
         }
         break;
 
@@ -97,7 +97,7 @@ public class Logger {
               .atInfo()
               .withThrowable(throwable)
               .withLocation()
-              .log(logMessages.getMessage(), args);
+              .log(logMessage.getMessage(), args);
         }
         break;
 
@@ -107,7 +107,7 @@ public class Logger {
               .atDebug()
               .withThrowable(throwable)
               .withLocation()
-              .log(logMessages.getMessage(), args);
+              .log(logMessage.getMessage(), args);
         }
         break;
 
@@ -117,7 +117,7 @@ public class Logger {
               .atError()
               .withThrowable(throwable)
               .withLocation()
-              .log(logMessages.getMessage(), args);
+              .log(logMessage.getMessage(), args);
         }
         break;
 
@@ -126,8 +126,8 @@ public class Logger {
     ThreadContext.remove(CATEGORY);
   }
 
-  private boolean logAt(LogMessages logMessages) {
-    switch (logMessages.getLevel()) {
+  private boolean logAt(LogMessage logMessage) {
+    switch (logMessage.getLevel()) {
       case TRACE:
         return localLogger.isTraceEnabled();
 
