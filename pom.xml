@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.mapsmessaging</groupId>
   <artifactId>Simple_Logging</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
 
   <name>Maps Messaging - Simple Logging API</name>
@@ -173,39 +173,11 @@
       <version>5.8.1</version>
     </dependency>
 
-    <!-- Java micro benchmarking -->
-    <dependency>
-      <artifactId>jmh-core</artifactId>
-      <groupId>org.openjdk.jmh</groupId>
-      <scope>test</scope>
-      <version>1.33</version>
-    </dependency>
-
-    <dependency>
-      <artifactId>jmh-generator-annprocess</artifactId>
-      <groupId>org.openjdk.jmh</groupId>
-      <scope>test</scope>
-      <version>1.33</version>
-    </dependency>
-
-    <!-- Add annotations for not null -->
-    <dependency>
-      <artifactId>annotations</artifactId>
-      <groupId>org.jetbrains</groupId>
-      <version>22.0.0</version>
-    </dependency>
-
     <dependency>
       <artifactId>lombok</artifactId>
       <groupId>org.projectlombok</groupId>
       <version>1.18.22</version>
     </dependency>
-    <dependency>
-      <artifactId>jsr305</artifactId>
-      <groupId>com.google.code.findbugs</groupId>
-      <version>3.0.2</version>
-    </dependency>
-
   </dependencies>
 
 </project>
