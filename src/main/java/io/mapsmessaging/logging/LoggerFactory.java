@@ -1,7 +1,7 @@
 package io.mapsmessaging.logging;
 
 /**
- * This class encapsulates the Logger Factory implementation so it can be replaced in the future
+ * This class encapsulates the Logger Factory implementation so, it can be replaced in the future
  */
 public class LoggerFactory {
 
