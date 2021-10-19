@@ -14,4 +14,17 @@ public class SimpleLogTest {
     if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, "Error Message");
 
   }
+
+  @Test
+  void simpleExceptionTest(){
+    Exception ex = new Exception("Just a test");
+    ex.fillInStackTrace();
+    Logger logger = LoggerFactory.getLogger(SimpleLogTest.class);
+    if(logger.isTraceEnabled())logger.log(LogMessages.TRACE, "Trace Message", ex);
+    if(logger.isDebugEnabled())logger.log(LogMessages.DEBUG, "Debug Message", ex);
+    if(logger.isInfoEnabled())logger.log(LogMessages.INFO, "Info Message", ex);
+    if(logger.isWarnEnabled())logger.log(LogMessages.WARN, "Warn Message", ex);
+    if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, "Error Message", ex);
+
+  }
 }
