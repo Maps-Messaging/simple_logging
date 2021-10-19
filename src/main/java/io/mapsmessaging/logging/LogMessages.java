@@ -3,11 +3,11 @@ package io.mapsmessaging.logging;
 import lombok.Getter;
 
 public enum LogMessages implements LogMessage {
-  TRACE(LEVEL.WARN, CATEGORY.TEST, "Trace Testing Only - {}"),
+  TRACE(LEVEL.TRACE, CATEGORY.TEST, "Trace Testing Only - {}"),
   DEBUG(LEVEL.DEBUG, CATEGORY.TEST,"Debug Testing Only - {}"),
   INFO(LEVEL.INFO,  CATEGORY.TEST,"Info Testing Only - {}"),
   WARN(LEVEL.WARN, CATEGORY.TEST, "Warn Testing Only - {}"),
-  ERROR(LEVEL.WARN, CATEGORY.TEST, "Error Testing Only - {}");
+  ERROR(LEVEL.ERROR, CATEGORY.TEST, "Error Testing Only - {}");
 
   private final @Getter String message;
   private final @Getter LEVEL level;

@@ -139,6 +139,10 @@ public class Logger {
 
       case WARN:
         return localLogger.isWarnEnabled();
+
+      case ERROR:
+        return localLogger.isErrorEnabled();
+
       default:
         return false;
     }
