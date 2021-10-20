@@ -9,6 +9,7 @@ import lombok.Getter;
  * The enum is simply, the log level for the message, an arbitrary category that makes sense to your application and then the log test itself
  */
 public enum LogMessages implements LogMessage {
+
   TRACE(LEVEL.TRACE, CATEGORY.TEST, "Trace Testing Only - {}"),
   DEBUG(LEVEL.DEBUG, CATEGORY.TEST,"Debug Testing Only - {}"),
   INFO(LEVEL.INFO,  CATEGORY.TEST,"Info Testing Only - {}"),
@@ -37,6 +38,10 @@ public enum LogMessages implements LogMessage {
     TEST("Test");
 
     public final @Getter String description;
+
+    public String getDivision(){
+      return "Test";
+    }
 
     CATEGORY(String description) {
       this.description = description;

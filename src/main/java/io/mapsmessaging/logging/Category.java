@@ -6,5 +6,7 @@ package io.mapsmessaging.logging;
  */
 public interface Category {
 
+  String getDivision();
+
   String getDescription();
 }

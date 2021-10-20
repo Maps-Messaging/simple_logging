@@ -7,6 +7,7 @@ import org.apache.logging.log4j.ThreadContext;
  */
 public class Logger {
 
+  private static final String DIVISION = "division";
   private static final String CATEGORY = "category";
 
   private final org.apache.logging.log4j.Logger localLogger;
@@ -27,7 +28,9 @@ public class Logger {
         localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}", logMessage.getParameterCount(), args.length);
       }
 
+      ThreadContext.put(DIVISION, logMessage.getCategory().getDivision());
       ThreadContext.put(CATEGORY, logMessage.getCategory().getDescription());
+
       switch (logMessage.getLevel()) {
         case TRACE:
           localLogger.trace(logMessage.getMessage(), args);
