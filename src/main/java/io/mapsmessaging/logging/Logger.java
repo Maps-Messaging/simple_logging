@@ -135,7 +135,7 @@ public class Logger {
       case FATAL:
         if (isFatalEnabled()) {
           localLogger
-              .atError()
+              .atFatal()
               .withThrowable(throwable)
               .withLocation()
               .log(logMessage.getMessage(), args);
