@@ -52,6 +52,14 @@ public class Logger {
           localLogger.error(logMessage.getMessage(), args);
           break;
 
+        case FATAL:
+          localLogger.fatal(logMessage.getMessage(), args);
+          break;
+
+        case AUTH:
+          localLogger.log(LEVEL.AUTHENTICATION, logMessage.getMessage(), args);
+          break;
+
         default:
       }
       ThreadContext.remove(CATEGORY);
@@ -124,6 +132,22 @@ public class Logger {
         }
         break;
 
+      case FATAL:
+        if (isFatalEnabled()) {
+          localLogger
+              .atError()
+              .withThrowable(throwable)
+              .withLocation()
+              .log(logMessage.getMessage(), args);
+        }
+        break;
+
+      case AUTH:
+        if (iaAuthEnabled()) {
+          localLogger.log(LEVEL.AUTHENTICATION, logMessage.getMessage(), args);
+        }
+        break;
+
       default:
     }
     ThreadContext.remove(CATEGORY);
@@ -132,19 +156,25 @@ public class Logger {
   private boolean logAt(LogMessage logMessage) {
     switch (logMessage.getLevel()) {
       case TRACE:
-        return localLogger.isTraceEnabled();
+        return isTraceEnabled();
 
       case DEBUG:
-        return localLogger.isDebugEnabled();
+        return isDebugEnabled();
 
       case INFO:
-        return localLogger.isInfoEnabled();
+        return isInfoEnabled();
 
       case WARN:
-        return localLogger.isWarnEnabled();
+        return isWarnEnabled();
 
       case ERROR:
-        return localLogger.isErrorEnabled();
+        return isErrorEnabled();
+
+      case FATAL:
+        return isFatalEnabled();
+
+      case AUTH:
+        return iaAuthEnabled();
 
       default:
         return false;
@@ -174,4 +204,13 @@ public class Logger {
   public boolean isErrorEnabled() {
     return localLogger.isErrorEnabled();
   }
+
+  public boolean isFatalEnabled() {
+    return localLogger.isFatalEnabled();
+  }
+
+  public boolean iaAuthEnabled() {
+    return localLogger.getLevel().isLessSpecificThan(LEVEL.AUTHENTICATION);
+  }
+
 }
