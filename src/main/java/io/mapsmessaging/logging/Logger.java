@@ -143,7 +143,7 @@ public class Logger {
         break;
 
       case AUTH:
-        if (iaAuthEnabled()) {
+        if (isAuthEnabled()) {
           localLogger.log(LEVEL.AUTHENTICATION, logMessage.getMessage(), args);
         }
         break;
@@ -174,7 +174,7 @@ public class Logger {
         return isFatalEnabled();
 
       case AUTH:
-        return iaAuthEnabled();
+        return isAuthEnabled();
 
       default:
         return false;
@@ -209,7 +209,7 @@ public class Logger {
     return localLogger.isFatalEnabled();
   }
 
-  public boolean iaAuthEnabled() {
+  public boolean isAuthEnabled() {
     return localLogger.getLevel().isLessSpecificThan(LEVEL.AUTHENTICATION);
   }
 

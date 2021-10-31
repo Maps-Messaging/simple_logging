@@ -12,8 +12,8 @@ public class SimpleLogTest {
     if(logger.isInfoEnabled())logger.log(LogMessages.INFO, "Info Message");
     if(logger.isWarnEnabled())logger.log(LogMessages.WARN, "Warn Message");
     if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, "Error Message");
-    if(logger.iaAuthEnabled())logger.log(LogMessages.AUTH, "Auth Message");
-
+    if(logger.isFatalEnabled())logger.log(LogMessages.FATAL, "Fatal Message");
+    if(logger.isAuthEnabled())logger.log(LogMessages.AUTH, "Auth Message");
   }
 
   @Test
@@ -26,7 +26,8 @@ public class SimpleLogTest {
     if(logger.isInfoEnabled())logger.log(LogMessages.INFO, ex,"Info Message");
     if(logger.isWarnEnabled())logger.log(LogMessages.WARN, ex,"Warn Message");
     if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, ex,"Error Message");
-    if(logger.iaAuthEnabled())logger.log(LogMessages.ERROR, ex,"Auth Message");
+    if(logger.isFatalEnabled())logger.log(LogMessages.FATAL, ex,"Fatal Message");
+    if(logger.isAuthEnabled())logger.log(LogMessages.AUTH, ex,"Auth Message");
 
   }
 }
