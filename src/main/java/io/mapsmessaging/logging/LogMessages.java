@@ -16,7 +16,9 @@ public enum LogMessages implements LogMessage {
   WARN(LEVEL.WARN, CATEGORY.TEST, "Warn Testing Only - {}"),
   ERROR(LEVEL.ERROR, CATEGORY.TEST, "Error Testing Only - {}"),
   FATAL(LEVEL.FATAL, CATEGORY.TEST, "Fatal Testing Only - {}"),
-  AUTH(LEVEL.AUTH, CATEGORY.TEST, "Authentication Testing Only - {}");
+  AUTH(LEVEL.AUTH, CATEGORY.TEST, "Authentication Testing Only - {}"),
+  AUDIT(LEVEL.AUDIT, CATEGORY.TEST, "Audit Testing Only - {}"),
+  ;
 
   private final @Getter String message;
   private final @Getter LEVEL level;

@@ -60,6 +60,10 @@ public class Logger {
           localLogger.log(LEVEL.AUTHENTICATION, logMessage.getMessage(), args);
           break;
 
+        case AUDIT:
+          localLogger.log(LEVEL.AUDITING, logMessage.getMessage(), args);
+          break;
+
         default:
       }
       ThreadContext.remove(CATEGORY);
@@ -148,6 +152,12 @@ public class Logger {
         }
         break;
 
+      case AUDIT:
+        if (isAuditEnabled()) {
+          localLogger.log(LEVEL.AUDITING, logMessage.getMessage(), args);
+        }
+        break;
+
       default:
     }
     ThreadContext.remove(CATEGORY);
@@ -175,6 +185,9 @@ public class Logger {
 
       case AUTH:
         return isAuthEnabled();
+
+      case AUDIT:
+        return isAuditEnabled();
 
       default:
         return false;
@@ -211,6 +224,9 @@ public class Logger {
 
   public boolean isAuthEnabled() {
     return localLogger.getLevel().isLessSpecificThan(LEVEL.AUTHENTICATION);
+  }
+  public boolean isAuditEnabled() {
+    return localLogger.getLevel().isLessSpecificThan(LEVEL.AUDITING);
   }
 
 }

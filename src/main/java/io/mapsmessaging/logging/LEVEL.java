@@ -12,9 +12,11 @@ public enum LEVEL {
   WARN,
   ERROR,
   FATAL,
-  AUTH;
+  AUTH,
+  AUDIT;
 
   // This creates the "VERBOSE" level if it does not exist yet.
   public static final Level AUTHENTICATION = Level.forName("AUTH", 50);
+  public static final Level AUDITING = Level.forName("AUDIT", 45);
 
 }

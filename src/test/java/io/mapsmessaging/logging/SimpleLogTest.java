@@ -14,6 +14,7 @@ public class SimpleLogTest {
     if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, "Error Message");
     if(logger.isFatalEnabled())logger.log(LogMessages.FATAL, "Fatal Message");
     if(logger.isAuthEnabled())logger.log(LogMessages.AUTH, "Auth Message");
+    if(logger.isAuditEnabled())logger.log(LogMessages.AUDIT, "Audit Message");
   }
 
   @Test
@@ -28,6 +29,7 @@ public class SimpleLogTest {
     if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, ex,"Error Message");
     if(logger.isFatalEnabled())logger.log(LogMessages.FATAL, ex,"Fatal Message");
     if(logger.isAuthEnabled())logger.log(LogMessages.AUTH, ex,"Auth Message");
+    if(logger.isAuditEnabled())logger.log(LogMessages.AUDIT, ex,"Audit Message");
 
   }
 }
