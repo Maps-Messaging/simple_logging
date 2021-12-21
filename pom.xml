@@ -33,7 +33,6 @@
   <properties>
     <maven.compiler.source>13</maven.compiler.source>
     <maven.compiler.target>13</maven.compiler.target>
-    <logback.version>1.2.9</logback.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <runSuite>**/*Suite.class</runSuite>
@@ -166,29 +165,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.32</version>
-    </dependency>
-
-
-    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>${logback.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-core -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
-      <version>${logback.version}</version>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-access -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-access</artifactId>
-      <version>${logback.version}</version>
     </dependency>
 
     <!-- Junit5 -->
