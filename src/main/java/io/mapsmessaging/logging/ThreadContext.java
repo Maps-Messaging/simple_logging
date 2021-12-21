@@ -1,5 +1,6 @@
 package io.mapsmessaging.logging;
 
+import java.util.Map;
 import org.slf4j.MDC;
 
 public class ThreadContext {
@@ -16,5 +17,20 @@ public class ThreadContext {
     MDC.clear();
   }
 
+  public static void clearMap(){
+    MDC.clear();
+  }
+
+  public static void clearAll(){
+    MDC.clear();
+  }
+
+  public static Map<String, String> getContext(){
+    return MDC.getCopyOfContextMap();
+  }
+
+  public static void putAll(Map<String, String> context){
+    MDC.setContextMap(context);
+  }
 
 }
