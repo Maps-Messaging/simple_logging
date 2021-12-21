@@ -1,5 +1,7 @@
 package io.mapsmessaging.logging;
-import org.apache.logging.log4j.ThreadContext;
+
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  * Provides a consistent logging API that hides the logging implementation so it can be changed in the future
@@ -10,10 +12,15 @@ public class Logger {
   private static final String DIVISION = "division";
   private static final String CATEGORY = "category";
 
-  private final org.apache.logging.log4j.Logger localLogger;
+  private static final Marker fatal = MarkerFactory.getMarker("Fatal");
+  private static final Marker authentication = MarkerFactory.getMarker("Auth");
+  private static final Marker audit = MarkerFactory.getMarker("Audit");
+
+
+  private final org.slf4j.Logger localLogger;
 
   Logger(String loggerName) {
-    localLogger = org.apache.logging.log4j.LogManager.getLogger(loggerName);
+    localLogger = org.slf4j.LoggerFactory.getLogger(loggerName);
   }
 
   /**
@@ -53,15 +60,15 @@ public class Logger {
           break;
 
         case FATAL:
-          localLogger.fatal(logMessage.getMessage(), args);
+          localLogger.error(fatal, logMessage.getMessage(), args);
           break;
 
         case AUTH:
-          localLogger.log(LEVEL.AUTHENTICATION, logMessage.getMessage(), args);
+          localLogger.error(authentication, logMessage.getMessage(), args);
           break;
 
         case AUDIT:
-          localLogger.log(LEVEL.AUDITING, logMessage.getMessage(), args);
+          localLogger.error(audit, logMessage.getMessage(), args);
           break;
 
         default:
@@ -88,73 +95,49 @@ public class Logger {
     switch (logMessage.getLevel()) {
       case TRACE:
         if (isTraceEnabled()) {
-          localLogger
-              .atTrace()
-              .withThrowable(throwable)
-              .withLocation()
-              .log(logMessage.getMessage(), args);
+          localLogger.trace(logMessage.getMessage(), args);
         }
         break;
 
       case DEBUG:
         if (isDebugEnabled()) {
-          localLogger
-              .atDebug()
-              .withThrowable(throwable)
-              .withLocation()
-              .log(logMessage.getMessage(), args);
+          localLogger.debug(logMessage.getMessage(), args);
         }
         break;
 
       case INFO:
         if (isInfoEnabled()) {
-          localLogger
-              .atInfo()
-              .withThrowable(throwable)
-              .withLocation()
-              .log(logMessage.getMessage(), args);
+          localLogger.info(logMessage.getMessage(), args);
         }
         break;
 
       case WARN:
         if (isWarnEnabled()) {
-          localLogger
-              .atDebug()
-              .withThrowable(throwable)
-              .withLocation()
-              .log(logMessage.getMessage(), args);
+          localLogger.warn(logMessage.getMessage(), args);
         }
         break;
 
       case ERROR:
         if (isErrorEnabled()) {
-          localLogger
-              .atError()
-              .withThrowable(throwable)
-              .withLocation()
-              .log(logMessage.getMessage(), args);
+          localLogger.error(logMessage.getMessage(), args);
         }
         break;
 
       case FATAL:
         if (isFatalEnabled()) {
-          localLogger
-              .atFatal()
-              .withThrowable(throwable)
-              .withLocation()
-              .log(logMessage.getMessage(), args);
+          localLogger.error(fatal, logMessage.getMessage(), args);
         }
         break;
 
       case AUTH:
         if (isAuthEnabled()) {
-          localLogger.log(LEVEL.AUTHENTICATION, logMessage.getMessage(), args);
+          localLogger.error(authentication, logMessage.getMessage(), args);
         }
         break;
 
       case AUDIT:
         if (isAuditEnabled()) {
-          localLogger.log(LEVEL.AUDITING, logMessage.getMessage(), args);
+          localLogger.error(audit, logMessage.getMessage(), args);
         }
         break;
 
@@ -219,14 +202,15 @@ public class Logger {
   }
 
   public boolean isFatalEnabled() {
-    return localLogger.isFatalEnabled();
+    return isErrorEnabled();
   }
 
   public boolean isAuthEnabled() {
-    return localLogger.getLevel().isLessSpecificThan(LEVEL.AUTHENTICATION);
+    return  isErrorEnabled();
   }
+
   public boolean isAuditEnabled() {
-    return localLogger.getLevel().isLessSpecificThan(LEVEL.AUDITING);
+    return  isErrorEnabled();
   }
 
 }
