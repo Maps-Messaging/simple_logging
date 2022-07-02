@@ -23,3 +23,5 @@ public enum LogMessages implements LogMessage {
   DEBUG(LEVEL.DEBUG, CATEGORY.TEST, "Debug Testing Only - {}");
 }
 ```
+
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=Simple_Logging)
