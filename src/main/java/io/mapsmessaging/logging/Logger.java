@@ -74,6 +74,7 @@ public class Logger {
         default:
       }
       ThreadContext.remove(CATEGORY);
+      ThreadContext.remove(DIVISION);
     }
   }
 
@@ -85,65 +86,53 @@ public class Logger {
    * @param args A list of variable arguments to be logged
    */
   public void log(LogMessage logMessage, Throwable throwable, Object... args) {
-    if (logMessage.getParameterCount() != args.length) {
-      localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}",
-          logMessage.getParameterCount(),
-          args.length);
+    if(logAt(logMessage)) {
+      if (logMessage.getParameterCount() != args.length) {
+        localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}",
+            logMessage.getParameterCount(),
+            args.length);
+      }
+      log(logMessage, args);
+      ThreadContext.put(DIVISION, logMessage.getCategory().getDivision());
+      ThreadContext.put(CATEGORY, logMessage.getCategory().getDescription());
+      switch (logMessage.getLevel()) {
+        case TRACE:
+          localLogger.trace(logMessage.getMessage(), throwable);
+          break;
+
+        case DEBUG:
+          localLogger.debug(logMessage.getMessage(), throwable);
+          break;
+
+        case INFO:
+          localLogger.info(logMessage.getMessage(), throwable);
+          break;
+
+        case WARN:
+          localLogger.warn(logMessage.getMessage(), throwable);
+          break;
+
+        case ERROR:
+          localLogger.error(logMessage.getMessage(), throwable);
+          break;
+
+        case FATAL:
+          localLogger.error(fatal, logMessage.getMessage(), throwable);
+          break;
+
+        case AUTH:
+          localLogger.error(authentication, logMessage.getMessage(), throwable);
+          break;
+
+        case AUDIT:
+          localLogger.error(audit, logMessage.getMessage(), throwable);
+          break;
+
+        default:
+      }
+      ThreadContext.remove(CATEGORY);
+      ThreadContext.remove(DIVISION);
     }
-
-    ThreadContext.put(CATEGORY, logMessage.getCategory().getDescription());
-    switch (logMessage.getLevel()) {
-      case TRACE:
-        if (isTraceEnabled()) {
-          localLogger.trace(logMessage.getMessage(), args);
-        }
-        break;
-
-      case DEBUG:
-        if (isDebugEnabled()) {
-          localLogger.debug(logMessage.getMessage(), args);
-        }
-        break;
-
-      case INFO:
-        if (isInfoEnabled()) {
-          localLogger.info(logMessage.getMessage(), args);
-        }
-        break;
-
-      case WARN:
-        if (isWarnEnabled()) {
-          localLogger.warn(logMessage.getMessage(), args);
-        }
-        break;
-
-      case ERROR:
-        if (isErrorEnabled()) {
-          localLogger.error(logMessage.getMessage(), args);
-        }
-        break;
-
-      case FATAL:
-        if (isFatalEnabled()) {
-          localLogger.error(fatal, logMessage.getMessage(), args);
-        }
-        break;
-
-      case AUTH:
-        if (isAuthEnabled()) {
-          localLogger.error(authentication, logMessage.getMessage(), args);
-        }
-        break;
-
-      case AUDIT:
-        if (isAuditEnabled()) {
-          localLogger.error(audit, logMessage.getMessage(), args);
-        }
-        break;
-
-      default:
-    }
-    ThreadContext.remove(CATEGORY);
   }
 
   private boolean logAt(LogMessage logMessage) {

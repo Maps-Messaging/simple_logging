@@ -17,6 +17,7 @@
 
 <configuration>
   <shutdownHook/>
+
   <appender name="LogFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>myapp.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -27,10 +28,10 @@
       <pattern>%d{yyyy-MM-dd HH:mm:ss}, [%X{division}-%X{category}], [%t] %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
+
   <appender name="AsyncLogFile" class="ch.qos.logback.classic.AsyncAppender">
     <appender-ref ref="LogFile" />
   </appender>
-
 
   <root level="trace">
     <appender-ref ref="AsyncLogFile" />
