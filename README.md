@@ -24,4 +24,28 @@ public enum LogMessages implements LogMessage {
 }
 ```
 
+# pom.xml setup
+
+Add the repository configuration into the pom.xml
+``` xml
+    <!-- MapsMessaging jfrog server --> 
+    <repository>
+      <id>mapsmessaging.io</id>
+      <name>artifactory-releases</name>
+      <url>https://mapsmessaging.jfrog.io/artifactory/mapsmessaging-mvn-prod</url>
+    </repository>
+```    
+
+Then include the dependency
+``` xml
+    <!-- Simple logging API -->    
+    <dependency>
+      <groupId>io.mapsmessaging</groupId>
+      <artifactId>Simple_Logging</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+```    
+
+
+
 [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=Simple_Logging)
