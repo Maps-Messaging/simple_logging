@@ -9,7 +9,7 @@
   <version>2.0.6</version>
   <packaging>jar</packaging>
 
-  <name>Maps Messaging - Simple Logging API</name>
+  <name>Simple Logging API</name>
   <description>A simple logging api that keeps the messages in a single enum</description>
   <url>http://www.mapsmessaging.io</url>
 
