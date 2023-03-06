@@ -26,23 +26,16 @@ public enum LogMessages implements LogMessage {
 
 # pom.xml setup
 
-Add the repository configuration into the pom.xml
-``` xml
-    <!-- MapsMessaging jfrog server --> 
-    <repository>
-      <id>mapsmessaging.io</id>
-      <name>artifactory-releases</name>
-      <url>https://mapsmessaging.jfrog.io/artifactory/mapsmessaging-mvn-prod</url>
-    </repository>
-```    
 
-Then include the dependency
+All MapsMessaging libraries are hosted on the [maven central server.](https://central.sonatype.com/search?smo=true&q=mapsmessaging)
+
+Include the dependency
 ``` xml
     <!-- Simple logging API -->    
     <dependency>
       <groupId>io.mapsmessaging</groupId>
       <artifactId>Simple_Logging</artifactId>
-      <version>2.0.6</version>
+      <version>2.0.7</version>
     </dependency>
 ```    
 
