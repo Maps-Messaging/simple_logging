@@ -107,7 +107,7 @@
       <repositories>
         <repository>
           <id>github</id>
-          <url>https://maven.pkg.github.com/Maps-Messaging/Simple_Logging</url>
+          <url>https://maven.pkg.github.com/Maps-Messaging/simple_logging</url>
           <snapshots>
             <enabled>true</enabled>
           </snapshots>
@@ -120,7 +120,7 @@
   <distributionManagement>
     <snapshotRepository>
       <id>github</id>
-      <url>https://maven.pkg.github.com/Maps-Messaging/Simple_Logging</url>
+      <url>https://maven.pkg.github.com/Maps-Messaging/simple_logging</url>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>
