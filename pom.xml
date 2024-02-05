@@ -219,15 +219,6 @@
   </build>
 
   <dependencies>
-    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>1.4.14</version>
-      <scope>test</scope>
-    </dependency>
-
-
     <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -243,6 +234,7 @@
 
     <!-- TEST DEPENDENCIES -->
 
+
     <!-- Junit5 -->
     <dependency>
       <artifactId>junit-jupiter-engine</artifactId>
@@ -250,6 +242,15 @@
       <scope>test</scope>
       <version>5.10.1</version>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.14</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
 </project>

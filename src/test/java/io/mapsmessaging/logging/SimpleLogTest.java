@@ -16,37 +16,90 @@
  */
 package io.mapsmessaging.logging;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-public class SimpleLogTest {
+class SimpleLogTest {
+
+  @BeforeEach
+  public void setUp() {
+    InMemoryAppender.clearLogEvents();
+  }
+
+  @AfterEach
+  public void tearDown() {
+    InMemoryAppender.clearLogEvents();
+  }
 
   @Test
   void simpleTest(){
     Logger logger = LoggerFactory.getLogger(SimpleLogTest.class);
-    if(logger.isTraceEnabled())logger.log(LogMessages.TRACE, "Trace Message");
-    if(logger.isDebugEnabled())logger.log(LogMessages.DEBUG, "Debug Message");
-    if(logger.isInfoEnabled())logger.log(LogMessages.INFO, "Info Message");
-    if(logger.isWarnEnabled())logger.log(LogMessages.WARN, "Warn Message");
-    if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, "Error Message");
-    if(logger.isFatalEnabled())logger.log(LogMessages.FATAL, "Fatal Message");
-    if(logger.isAuthEnabled())logger.log(LogMessages.AUTH, "Auth Message");
-    if(logger.isAuditEnabled())logger.log(LogMessages.AUDIT, "Audit Message");
+    Assertions.assertEquals(SimpleLogTest.class.getName(), logger.getName());
+    if(logger.isTraceEnabled()){
+      logger.log(LogMessages.TRACE, "Trace Message");
+      Assertions.assertEquals("Trace Testing Only - "+"Trace Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isDebugEnabled()){
+      logger.log(LogMessages.DEBUG, "Debug Message");
+      Assertions.assertEquals("Debug Testing Only - "+"Debug Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isInfoEnabled()){
+      logger.log(LogMessages.INFO, "Info Message");
+      Assertions.assertEquals("Info Testing Only - "+"Info Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isWarnEnabled()){
+      logger.log(LogMessages.WARN, "Warn Message");
+      Assertions.assertEquals("Warn Testing Only - "+"Warn Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isErrorEnabled()) {
+      logger.log(LogMessages.ERROR, "Error Message");
+      Assertions.assertEquals("Error Testing Only - " + "Error Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isFatalEnabled()){
+      logger.log(LogMessages.FATAL, "Fatal Message");
+      Assertions.assertEquals("Fatal Testing Only - "+"Fatal Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isAuthEnabled()){
+      logger.log(LogMessages.AUTH, "Auth Message");
+      Assertions.assertEquals("Authentication Testing Only - "+"Auth Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isAuditEnabled()){
+      logger.log(LogMessages.AUDIT, "Audit Message");
+      Assertions.assertEquals("Audit Testing Only - "+"Audit Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
   }
 
   @Test
   void simpleExcessArgTest(){
+    Exception ex = new Exception("Just a test");
+    ex.fillInStackTrace();
+
     Logger logger = LoggerFactory.getLogger(SimpleLogTest.class);
-    if(logger.isTraceEnabled())logger.log(LogMessages.TRACE, "Trace Message", "extra");
-    if(logger.isDebugEnabled())logger.log(LogMessages.DEBUG, "Debug Message", "extra");
-    if(logger.isInfoEnabled())logger.log(LogMessages.INFO, "Info Message", "extra");
-    if(logger.isWarnEnabled())logger.log(LogMessages.WARN, "Warn Message", "extra");
-    if(logger.isErrorEnabled())logger.log(LogMessages.ERROR, "Error Message", "extra");
-    if(logger.isFatalEnabled())logger.log(LogMessages.FATAL, "Fatal Message", "extra");
-    if(logger.isAuthEnabled())logger.log(LogMessages.AUTH, "Auth Message", "extra");
-    if(logger.isAuditEnabled())logger.log(LogMessages.AUDIT, "Audit Message", "extra");
+    Assertions.assertEquals(1, LogMessages.TRACE.getParameterCount());
+    if(logger.isTraceEnabled()){
+      logger.log(LogMessages.TRACE, "Trace Message", "extra");
+      Assertions.assertEquals("Invalid number of arguments for the log messages, expected 1 received 2", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      Assertions.assertEquals("Trace Testing Only - "+"Trace Message", InMemoryAppender.logEvents.get(1).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
+    if(logger.isDebugEnabled()){
+      logger.log(LogMessages.DEBUG,  ex, "Debug Message", "extra");
+      Assertions.assertEquals("Invalid number of arguments for the log messages, expected 1 received 2", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      Assertions.assertEquals("Debug Testing Only - "+"Debug Message", InMemoryAppender.logEvents.get(1).getFormattedMessage());
+      InMemoryAppender.clearLogEvents();
+    }
   }
 
   @Test
