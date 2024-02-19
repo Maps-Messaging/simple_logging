@@ -172,37 +172,49 @@ public class ConfigurationProperties {
         double d = asDouble(value);
         return Math.round(d);
       }
-      long multiplier = 1L;
-      String end = value.substring(value.length() - 1);
-      if (end.equalsIgnoreCase("T")) {
-        multiplier = 1024L * 1024L * 1024L * 1024L;
-      } else if (end.equalsIgnoreCase("G")) {
-        multiplier = 1024L * 1024L * 1024L;
-      } else if (end.equalsIgnoreCase("M")) {
-        multiplier = 1024L * 1024L;
-      } else if (end.equalsIgnoreCase("K")) {
-        multiplier = 1024;
+
+      long val = parseTime(value);
+      if(val != Long.MAX_VALUE) {
+        return val;
       }
+
+      long multiplier = computeMultiplier(value);
       if (multiplier > 1) {
         value = value.substring(0, value.length() - 1);
       }
-      long val = 0;
-      if(value.equalsIgnoreCase("weekly")){
-        val = TimeUnit.DAYS.toMillis(7);
-      }
-      else if(value.equalsIgnoreCase("daily")){
-        val = TimeUnit.DAYS.toMillis(1);
-      }
-      else if(value.equalsIgnoreCase("hourly")){
-        val = TimeUnit.HOURS.toMillis(1);
-      }
-      else {
-        val = Long.parseLong(value);
-        val = val * multiplier;
-      }
-      return val;
+
+      return (Long.parseLong(value) * multiplier);
     }
     throw new NumberFormatException("Unknown number format detected [" + entry + "]");
+  }
+
+  private long computeMultiplier(String value){
+    long multiplier = 1L;
+    String end = value.substring(value.length() - 1);
+    if (end.equalsIgnoreCase("T")) {
+      multiplier = 1024L * 1024L * 1024L * 1024L;
+    } else if (end.equalsIgnoreCase("G")) {
+      multiplier = 1024L * 1024L * 1024L;
+    } else if (end.equalsIgnoreCase("M")) {
+      multiplier = 1024L * 1024L;
+    } else if (end.equalsIgnoreCase("K")) {
+      multiplier = 1024;
+    }
+    return multiplier;
+  }
+
+  private long parseTime(String value){
+    long val = Long.MAX_VALUE;
+    if(value.equalsIgnoreCase("weekly")){
+      val = TimeUnit.DAYS.toMillis(7);
+    }
+    else if(value.equalsIgnoreCase("daily")){
+      val = TimeUnit.DAYS.toMillis(1);
+    }
+    else if(value.equalsIgnoreCase("hourly")){
+      val = TimeUnit.HOURS.toMillis(1);
+    }
+    return val;
   }
 
   private double asDouble(Object entry) {
