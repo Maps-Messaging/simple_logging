@@ -46,6 +46,11 @@ public class EnvironmentConfig {
     pathLookups = new LinkedHashMap<>();
   }
 
+  public void clearAll(){
+    pathLocations.clear();
+    pathLookups.clear();
+  }
+
   public boolean registerPath(EnvironmentPathLookup pathConfig) throws IOException {
     String path = loadAndCreatePath(pathConfig.getName(), pathConfig.getDefaultPath(), pathConfig.isCreate());
     if(path != null) {

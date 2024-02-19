@@ -14,7 +14,10 @@ class EnvironmentConfigTest {
     EnvironmentConfig instance = EnvironmentConfig.getInstance();
     Assertions.assertEquals("", instance.translatePath("{{TEST}}"));
     EnvironmentPathLookup pathLookup = new EnvironmentPathLookup("TEST", file.getAbsolutePath(), false);
+    instance.clearAll();
     instance.registerPath(pathLookup);
+    Assertions.assertEquals(1, instance.getPathLocations().size());
+    Assertions.assertEquals(1, instance.getPathLookups().size());
     Assertions.assertNotNull(instance.translatePath("{{TEST}}"));
     Assertions.assertEquals(file.getAbsolutePath()+File.separator, instance.translatePath("{{TEST}}"));
   }

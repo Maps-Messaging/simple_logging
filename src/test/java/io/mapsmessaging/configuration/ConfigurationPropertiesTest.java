@@ -56,13 +56,15 @@ class ConfigurationPropertiesTest {
 
   @Test
   void getBooleanProperty() {
-    HashMap<String, Object> props = new LinkedHashMap<>();
+    ConfigurationProperties props = new ConfigurationProperties();
     props.put("trueStringValue", "true");
     props.put("falseStringValue", "false");
     props.put("trueValue", true);
     props.put("falseValue", false);
     props.put("booleanError", "this is not boolean");
-    ConfigurationProperties properties = new ConfigurationProperties(props);
+    ConfigurationProperties properties = new ConfigurationProperties(props.getMap());
+    properties.put("nextLevel", props.getMap());
+
 
     assertTrue(properties.getBooleanProperty("trueStringValue", false));
     assertTrue(properties.getBooleanProperty("trueValue", false));
