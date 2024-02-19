@@ -20,7 +20,6 @@ package io.mapsmessaging.configuration;
 
 import io.mapsmessaging.logging.Logger;
 import io.mapsmessaging.logging.LoggerFactory;
-import lombok.Getter;
 
 import static io.mapsmessaging.logging.LogMessages.CONFIG_PROPERTY_ACCESS;
 
