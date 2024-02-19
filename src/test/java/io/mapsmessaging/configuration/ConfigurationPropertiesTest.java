@@ -20,6 +20,7 @@ package io.mapsmessaging.configuration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,7 +50,7 @@ class ConfigurationPropertiesTest {
     ConfigurationProperties properties = new ConfigurationProperties(props);
     assertNull(properties.getProperty("empty"));
     assertNotNull(properties.getProperty("homeDirectory"));
-    assertEquals(".\\value", properties.getProperty("homeDirectory"));
+    assertEquals("."+ File.separator+"value", properties.getProperty("homeDirectory"));
     assertNotNull(properties.getProperty("osName"));
   }
 
