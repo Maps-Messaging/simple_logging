@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,7 +39,6 @@ class ConfigurationPropertiesTest {
     assertNotNull(properties.getProperty("notEmpty"));
     assertEquals("value", properties.getProperty("notEmpty"));
   }
-
 
   @Test
   void getEnvironmentProperty() throws IOException {
@@ -84,7 +84,12 @@ class ConfigurationPropertiesTest {
     props.put("longPowerG", "10G");
     props.put("longPowerT", "10T");
     props.put("longError", "10errorf");
+    props.put("longDaily", "daily");
+    props.put("longWeekly", "weekly");
+    props.put("longHourly", "hourly");
+
     ConfigurationProperties properties = new ConfigurationProperties(props);
+    assertEquals(props.size(), properties.size());
 
     assertEquals(10, properties.getLongProperty("longString", 0));
     assertEquals(10, properties.getLongProperty("long", 0));
@@ -93,6 +98,10 @@ class ConfigurationPropertiesTest {
     assertEquals(10L*1024L*1024L, properties.getLongProperty("longPowerM", 0));
     assertEquals(10L*1024L*1024L*1024L, properties.getLongProperty("longPowerG", 0));
     assertEquals(10L*1024L*1024L*1024L*1024L, properties.getLongProperty("longPowerT", 0));
+
+    assertEquals(60*60*1000, properties.getLongProperty("longHourly", 0));
+    assertEquals(24*60*60*1000, properties.getLongProperty("longDaily", 0));
+    assertEquals(7*24*60*60*1000, properties.getLongProperty("longWeekly", 0));
 
     assertEquals(123, properties.getLongProperty("longError", 123));
     assertEquals(123, properties.getLongProperty("empty", 123));
@@ -115,6 +124,9 @@ class ConfigurationPropertiesTest {
     assertEquals(10L*1024*1024, properties.getIntProperty("longPowerM", 0));
     assertEquals(123, properties.getIntProperty("longError", 123));
     assertEquals(123, properties.getIntProperty("empty", 123));
+    Map<String, Object> map = properties.getMap();
+    Assertions.assertNotNull(map);
+    Assertions.assertEquals(properties.size(), map.size());
   }
 
   @Test
