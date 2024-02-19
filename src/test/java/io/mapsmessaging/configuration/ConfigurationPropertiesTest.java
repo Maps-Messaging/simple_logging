@@ -22,9 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,6 +36,21 @@ class ConfigurationPropertiesTest {
     assertNull(properties.getProperty("empty"));
     assertNotNull(properties.getProperty("notEmpty"));
     assertEquals("value", properties.getProperty("notEmpty"));
+    List<String> stringList = new ArrayList<>();
+    stringList.add("aString");
+    properties.put("stringList", stringList);
+
+    Assertions.assertFalse(properties.isEmpty());
+    Assertions.assertNotNull(properties.getProperty("stringList"));
+    for(String key:properties.keySet()){
+      Assertions.assertNotNull(properties.getProperty(key));
+    }
+
+    for(Map.Entry<String,Object> entry:properties.entrySet()){
+      Assertions.assertNotNull(entry);
+      Assertions.assertNotNull(entry.getKey());
+      Assertions.assertNotNull(entry.getValue());
+    }
   }
 
   @Test
@@ -62,6 +75,11 @@ class ConfigurationPropertiesTest {
     props.put("trueValue", true);
     props.put("falseValue", false);
     props.put("booleanError", "this is not boolean");
+    List<String> stringList = new ArrayList<>();
+    stringList.add("aString");
+    props.put("stringList", stringList);
+    Assertions.assertNotNull(props.getProperty("stringList"));
+
     ConfigurationProperties properties = new ConfigurationProperties(props.getMap());
     properties.put("nextLevel", props.getMap());
 
