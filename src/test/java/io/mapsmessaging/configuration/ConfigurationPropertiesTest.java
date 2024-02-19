@@ -39,6 +39,8 @@ class ConfigurationPropertiesTest {
     List<String> stringList = new ArrayList<>();
     stringList.add("aString");
     properties.put("stringList", stringList);
+    properties.setSource(properties.toString());
+    Assertions.assertEquals(properties.toString(), properties.getSource());
 
     Assertions.assertFalse(properties.isEmpty());
     Assertions.assertNotNull(properties.getProperty("stringList"));
@@ -72,6 +74,9 @@ class ConfigurationPropertiesTest {
     ConfigurationProperties props = new ConfigurationProperties();
     props.put("trueStringValue", "true");
     props.put("falseStringValue", "false");
+    props.put("enableStringValue", "enable");
+    props.put("disableStringValue", "disable");
+
     props.put("trueValue", true);
     props.put("falseValue", false);
     props.put("booleanError", "this is not boolean");
@@ -85,9 +90,11 @@ class ConfigurationPropertiesTest {
 
 
     assertTrue(properties.getBooleanProperty("trueStringValue", false));
+    assertTrue(properties.getBooleanProperty("enableStringValue", false));
     assertTrue(properties.getBooleanProperty("trueValue", false));
 
     assertFalse(properties.getBooleanProperty("falseStringValue", true));
+    assertFalse(properties.getBooleanProperty("disableStringValue", true));
     assertFalse(properties.getBooleanProperty("falseValue", true));
 
     assertFalse(properties.getBooleanProperty("booleanError", false));
