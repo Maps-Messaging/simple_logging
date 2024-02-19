@@ -25,6 +25,7 @@ import org.json.JSONObject;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import static io.mapsmessaging.logging.LogMessages.PROPERTY_MANAGER_ENTRY_LOOKUP;
 import static io.mapsmessaging.logging.LogMessages.PROPERTY_MANAGER_ENTRY_LOOKUP_FAILED;
@@ -185,8 +186,20 @@ public class ConfigurationProperties {
       if (multiplier > 1) {
         value = value.substring(0, value.length() - 1);
       }
-      long val = Long.parseLong(value);
-      val = val * multiplier;
+      long val = 0;
+      if(value.equalsIgnoreCase("weekly")){
+        val = TimeUnit.DAYS.toMillis(7);
+      }
+      else if(value.equalsIgnoreCase("daily")){
+        val = TimeUnit.DAYS.toMillis(1);
+      }
+      else if(value.equalsIgnoreCase("hourly")){
+        val = TimeUnit.HOURS.toMillis(1);
+      }
+      else {
+        val = Long.parseLong(value);
+        val = val * multiplier;
+      }
       return val;
     }
     throw new NumberFormatException("Unknown number format detected [" + entry + "]");
