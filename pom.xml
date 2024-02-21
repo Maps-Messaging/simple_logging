@@ -232,13 +232,6 @@
       <version>1.18.30</version>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.json/json -->
-    <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-      <version>20231013</version>
-    </dependency>
-
     <!-- TEST DEPENDENCIES -->
 
 
