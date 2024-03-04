@@ -103,11 +103,6 @@ public class Logger {
    */
   public void log(LogMessage logMessage, Throwable throwable, Object... args) {
     if(logAt(logMessage)) {
-      if (logMessage.getParameterCount() != args.length) {
-        localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}",
-            logMessage.getParameterCount(),
-            args.length);
-      }
       log(logMessage, args);
       ThreadContext.put(DIVISION, logMessage.getCategory().getDivision());
       ThreadContext.put(CATEGORY, logMessage.getCategory().getDescription());
