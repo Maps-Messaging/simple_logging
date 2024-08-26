@@ -64,7 +64,7 @@
 
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.organization>maps-messaging</sonar.organization>
-    <sonar.projectKey>Simple Logging API</sonar.projectKey>
+    <sonar.projectKey>Simple_Logging</sonar.projectKey>
 
     <sonar.sources>src/main</sonar.sources>
     <sonar.test.exclusions>
