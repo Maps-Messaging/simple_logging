@@ -108,7 +108,7 @@
     <snapshotRepository>
       <id>maps_snapshots</id>
       <name>maps_snapshot_repository</name>
-fix url      <url>https://repository.mapsmessaging.io/repository/maps_snapshots/</url>
+        <url>https://repository.mapsmessaging.io/repository/maps_snapshots/</url>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>
