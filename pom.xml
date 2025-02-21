@@ -279,7 +279,7 @@
       <artifactId>junit-jupiter-engine</artifactId>
       <groupId>org.junit.jupiter</groupId>
       <scope>test</scope>
-      <version>5.11.4</version>
+      <version>5.12.0</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
