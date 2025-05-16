@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~
-  ~  Copyright [ 2020 - 2024 ] [Matthew Buckton]
-  ~  Copyright [ 2024 - 2025  ] [Maps Messaging B.V.]
+  ~  Copyright [ 2020 - 2024 ] Matthew Buckton
+  ~  Copyright [ 2024 - 2025 ] MapsMessaging B.V.
   ~
-  ~   Licensed under the Apache License, Version 2.0 (the "License");
-  ~   you may not use this file except in compliance with the License.
-  ~   You may obtain a copy of the License at
+  ~  Licensed under the Apache License, Version 2.0 with the Commons Clause
+  ~  (the "License"); you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at:
   ~
   ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~      https://commonsclause.com/
   ~
   ~  Unless required by applicable law or agreed to in writing, software
   ~  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,17 +48,11 @@
 
   <licenses>
     <license>
-      <distribution>repo</distribution>
-      <name>Mozilla Public License Version 2.0</name>
-      <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
-    </license>
-    <license>
-      <distribution>repo</distribution>
-      <name>CommonsClause</name>
+      <name>Apache License 2.0 with Commons Clause</name>
       <url>https://commonsclause.com/</url>
+      <distribution>repo</distribution>
     </license>
   </licenses>
-
   <scm>
     <url>https://github.com/Maps-Messaging/simple_logging.git</url>
   </scm>
@@ -213,6 +208,20 @@
         <groupId>org.apache.maven.plugins</groupId>
         <version>3.5.3</version>
       </plugin>
+      <!-- sBOM  generator -->
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <version>2.9.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>makeAggregateBom</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <!-- JavaDoc -->
       <plugin>
@@ -269,6 +278,7 @@
       <artifactId>lombok</artifactId>
       <groupId>org.projectlombok</groupId>
       <version>1.18.38</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- TEST DEPENDENCIES -->
