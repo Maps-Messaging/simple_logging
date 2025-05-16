@@ -55,8 +55,10 @@
       <name>Apache License 2.0 with Commons Clause</name>
       <url>https://commonsclause.com/</url>
       <distribution>repo</distribution>
+      <comments>Applied in conjunction with Apache 2.0 to restrict commercial sale</comments>
     </license>
   </licenses>
+
   <scm>
     <url>https://github.com/Maps-Messaging/simple_logging.git</url>
   </scm>
