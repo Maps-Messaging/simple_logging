@@ -35,14 +35,18 @@
 
   <developers>
     <developer>
-      <id>mbuckton</id>
-      <name>Matthew Buckton</name>
-      <organization>Maps Messaging</organization>
-      <organizationUrl>http://mapsmessaging.io/</organizationUrl>
+      <id>mapsmessaging</id>
+      <name>MapsMessaging B.V.</name>
+      <organization>MapsMessaging B.V.</organization>
+      <organizationUrl>https://mapsmessaging.io/</organizationUrl>
       <roles>
-        <role>founder</role>
+        <role>developer</role>
+        <role>maintainer</role>
       </roles>
-      <timezone>Australia/Sydney</timezone>
+      <timezone>Europe/Amsterdam</timezone>
+      <properties>
+        <location>Eindhoven, Netherlands</location>
+      </properties>
     </developer>
   </developers>
 
