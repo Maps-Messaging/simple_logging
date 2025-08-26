@@ -1,17 +1,20 @@
 /*
- *   Copyright [2020 - 2022]   [Matthew Buckton]
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ *  Copyright [ 2020 - 2024 ] Matthew Buckton
+ *  Copyright [ 2024 - 2025 ] MapsMessaging B.V.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *  Licensed under the Apache License, Version 2.0 with the Commons Clause
+ *  (the "License"); you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://commonsclause.com/
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 package io.mapsmessaging.logging;
@@ -31,12 +34,21 @@ public class Logger {
   private static final Marker fatal = MarkerFactory.getMarker("Fatal");
   private static final Marker authentication = MarkerFactory.getMarker("Auth");
   private static final Marker audit = MarkerFactory.getMarker("Audit");
+  private final boolean[] levelEnabled = new boolean[LEVEL.values().length];
 
 
   private final org.slf4j.Logger localLogger;
 
   Logger(String loggerName) {
     localLogger = org.slf4j.LoggerFactory.getLogger(loggerName);
+    levelEnabled[LEVEL.TRACE.ordinal()] = localLogger.isTraceEnabled();
+    levelEnabled[LEVEL.DEBUG.ordinal()] = localLogger.isDebugEnabled();
+    levelEnabled[LEVEL.INFO.ordinal()] = localLogger.isInfoEnabled();
+    levelEnabled[LEVEL.WARN.ordinal()] = localLogger.isWarnEnabled();
+    levelEnabled[LEVEL.ERROR.ordinal()] = localLogger.isErrorEnabled();
+    levelEnabled[LEVEL.FATAL.ordinal()] = levelEnabled[LEVEL.ERROR.ordinal()];
+    levelEnabled[LEVEL.AUTH.ordinal()] = levelEnabled[LEVEL.ERROR.ordinal()];
+    levelEnabled[LEVEL.AUDIT.ordinal()] = levelEnabled[LEVEL.ERROR.ordinal()];
   }
 
   /**
@@ -147,34 +159,7 @@ public class Logger {
   }
 
   private boolean logAt(LogMessage logMessage) {
-    switch (logMessage.getLevel()) {
-      case TRACE:
-        return isTraceEnabled();
-
-      case DEBUG:
-        return isDebugEnabled();
-
-      case INFO:
-        return isInfoEnabled();
-
-      case WARN:
-        return isWarnEnabled();
-
-      case ERROR:
-        return isErrorEnabled();
-
-      case FATAL:
-        return isFatalEnabled();
-
-      case AUTH:
-        return isAuthEnabled();
-
-      case AUDIT:
-        return isAuditEnabled();
-
-      default:
-        return false;
-    }
+    return levelEnabled[logMessage.getLevel().ordinal()];
   }
 
   public String getName() {
@@ -182,35 +167,35 @@ public class Logger {
   }
 
   public boolean isTraceEnabled() {
-    return localLogger.isTraceEnabled();
+    return levelEnabled[LEVEL.TRACE.ordinal()];
   }
 
   public boolean isDebugEnabled() {
-    return localLogger.isDebugEnabled();
+    return levelEnabled[LEVEL.DEBUG.ordinal()];
   }
 
   public boolean isInfoEnabled() {
-    return localLogger.isInfoEnabled();
+    return levelEnabled[LEVEL.INFO.ordinal()];
   }
 
   public boolean isWarnEnabled() {
-    return localLogger.isWarnEnabled();
+    return levelEnabled[LEVEL.WARN.ordinal()];
   }
 
   public boolean isErrorEnabled() {
-    return localLogger.isErrorEnabled();
+    return levelEnabled[LEVEL.ERROR.ordinal()];
   }
 
   public boolean isFatalEnabled() {
-    return isErrorEnabled();
+    return levelEnabled[LEVEL.FATAL.ordinal()];
   }
 
   public boolean isAuthEnabled() {
-    return  isErrorEnabled();
+    return levelEnabled[LEVEL.AUTH.ordinal()];
   }
 
   public boolean isAuditEnabled() {
-    return  isErrorEnabled();
+    return levelEnabled[LEVEL.AUDIT.ordinal()];
   }
 
 }
