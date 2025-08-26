@@ -97,9 +97,6 @@
     </sonar.test.exclusions>
   </properties>
 
-
-  // user:DdvZfQ
-  // token:
   <profiles>
     <profile>
       <id>release</id>
