@@ -108,7 +108,7 @@
             <version>1.7.0</version>
             <extensions>true</extensions>
             <configuration>
-              <serverId>io.mapsmessaging</serverId>
+              <serverId>mapsmessaging.io</serverId>
               <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
               <autoReleaseAfterClose>true</autoReleaseAfterClose>
             </configuration>
@@ -126,7 +126,7 @@
         <url>https://repository.mapsmessaging.io/repository/maps_snapshots/</url>
     </snapshotRepository>
     <repository>
-      <id>io.mapsmessaging</id>
+      <id>mapsmessaging.io</id>
       <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
