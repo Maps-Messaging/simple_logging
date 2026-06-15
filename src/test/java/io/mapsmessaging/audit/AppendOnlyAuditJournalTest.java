@@ -23,12 +23,16 @@ package io.mapsmessaging.audit;
 import io.mapsmessaging.logging.Category;
 import io.mapsmessaging.logging.LEVEL;
 import io.mapsmessaging.logging.LogMessage;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
+import java.security.interfaces.EdECPublicKey;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -101,7 +105,7 @@ class AppendOnlyAuditJournalTest {
       assertNotNull(auditRecord.getSignature());
 
       AuditVerifier auditVerifier = new AuditVerifier(
-          (java.security.interfaces.EdECPublicKey) keyPair.getPublic()
+          (EdECPublicKey) keyPair.getPublic()
       );
 
       AuditVerifier.VerificationResult verificationResult = auditVerifier.verifyJournal(
@@ -127,42 +131,16 @@ class AppendOnlyAuditJournalTest {
     )) {
       AuditLogger auditLogger = new AuditLogger(auditJournal);
 
-      AuditContext firstAuditContext = AuditContext.builder()
-          .auditId("audit-1")
-          .correlationId("correlation-1")
-          .actor("unit-test")
-          .actorType("test")
-          .source("source-system")
-          .destination("destination-system")
-          .subject("first-subject")
-          .action("first-action")
-          .outcome(AuditOutcome.SUCCESS)
-          .timestamp(Instant.parse("2026-05-25T00:00:00Z"))
-          .build();
-
-      AuditContext secondAuditContext = AuditContext.builder()
-          .auditId("audit-2")
-          .correlationId("correlation-2")
-          .actor("unit-test")
-          .actorType("test")
-          .source("source-system")
-          .destination("destination-system")
-          .subject("second-subject")
-          .action("second-action")
-          .outcome(AuditOutcome.SUCCESS)
-          .timestamp(Instant.parse("2026-05-25T00:00:01Z"))
-          .build();
-
       AuditRecord firstAuditRecord = auditLogger.audit(
           TestAuditMessages.TEST_AUDIT_EVENT,
-          firstAuditContext,
+          buildAuditContext("audit-1", "correlation-1", "first-subject"),
           "first",
           "record"
       );
 
       AuditRecord secondAuditRecord = auditLogger.audit(
           TestAuditMessages.TEST_AUDIT_EVENT,
-          secondAuditContext,
+          buildAuditContext("audit-2", "correlation-2", "second-subject"),
           "second",
           "record"
       );
@@ -174,7 +152,7 @@ class AppendOnlyAuditJournalTest {
       assertEquals(2, auditJournal.getCurrentSequenceNumber());
 
       AuditVerifier auditVerifier = new AuditVerifier(
-          (java.security.interfaces.EdECPublicKey) keyPair.getPublic()
+          (EdECPublicKey) keyPair.getPublic()
       );
 
       AuditVerifier.VerificationResult verificationResult = auditVerifier.verifyJournal(
@@ -185,6 +163,171 @@ class AppendOnlyAuditJournalTest {
       assertEquals(2, verificationResult.verifiedRecords());
       assertEquals(secondAuditRecord.getRecordHash(), verificationResult.lastHash());
     }
+  }
+
+  @Test
+  void shouldContinueSequenceAndHashAfterRestart() throws Exception {
+    Path journalRoot = temporaryDirectory.resolve("journal");
+
+    AuditKeyUtils auditKeyUtils = new AuditKeyUtils();
+    KeyPair keyPair = auditKeyUtils.generateEd25519KeyPair();
+
+    AuditRecord firstAuditRecord;
+
+    try (AppendOnlyAuditJournal auditJournal = buildAuditJournal(journalRoot, keyPair)) {
+      firstAuditRecord = appendTestRecord(auditJournal, 1);
+    }
+
+    try (AppendOnlyAuditJournal auditJournal = buildAuditJournal(journalRoot, keyPair)) {
+      assertEquals(1, auditJournal.getCurrentSequenceNumber());
+      assertEquals(firstAuditRecord.getRecordHash(), auditJournal.getCurrentRecordHash());
+
+      AuditRecord secondAuditRecord = appendTestRecord(auditJournal, 2);
+
+      assertEquals(2, secondAuditRecord.getSequenceNumber());
+      assertEquals(firstAuditRecord.getRecordHash(), secondAuditRecord.getPreviousRecordHash());
+      assertEquals(secondAuditRecord.getRecordHash(), auditJournal.getCurrentRecordHash());
+    }
+
+    AuditVerifier.VerificationResult verificationResult = verifyAllJournals(journalRoot, keyPair);
+
+    assertTrue(verificationResult.valid());
+    assertEquals(2, verificationResult.verifiedRecords());
+  }
+
+  @Test
+  void shouldReuseLatestJournalAfterRestartWhenRotationIsNotRequired() throws Exception {
+    Path journalRoot = temporaryDirectory.resolve("journal");
+
+    AuditKeyUtils auditKeyUtils = new AuditKeyUtils();
+    KeyPair keyPair = auditKeyUtils.generateEd25519KeyPair();
+
+    Path firstJournalPath;
+
+    try (AppendOnlyAuditJournal auditJournal = buildAuditJournal(journalRoot, keyPair)) {
+      appendTestRecord(auditJournal, 1);
+      firstJournalPath = auditJournal.getActiveJournalPath();
+    }
+
+    try (AppendOnlyAuditJournal auditJournal = buildAuditJournal(journalRoot, keyPair)) {
+      assertEquals(firstJournalPath, auditJournal.getActiveJournalPath());
+
+      AuditRecord secondAuditRecord = appendTestRecord(auditJournal, 2);
+
+      assertEquals(2, secondAuditRecord.getSequenceNumber());
+      assertEquals(firstJournalPath, auditJournal.getActiveJournalPath());
+    }
+
+    List<Path> journalPaths = listJournalPaths(journalRoot);
+
+    assertEquals(1, journalPaths.size());
+
+    AuditVerifier.VerificationResult verificationResult = verifyAllJournals(journalRoot, keyPair);
+
+    assertTrue(verificationResult.valid());
+    assertEquals(2, verificationResult.verifiedRecords());
+  }
+
+  @Test
+  void shouldRotateBySizeAndMaintainHashChainAcrossFiles() throws Exception {
+    Path journalRoot = temporaryDirectory.resolve("journal");
+
+    AuditKeyUtils auditKeyUtils = new AuditKeyUtils();
+    KeyPair keyPair = auditKeyUtils.generateEd25519KeyPair();
+
+    AuditJournalConfig auditJournalConfig = AuditJournalConfig.builder()
+        .journalRoot(journalRoot)
+        .signingKey(keyPair.getPrivate())
+        .verificationKey((EdECPublicKey) keyPair.getPublic())
+        .maxJournalSizeBytes(2048)
+        .rotateDaily(true)
+        .failOnInvalidExistingJournal(true)
+        .build();
+
+    AuditRecord lastAuditRecord = null;
+
+    try (AppendOnlyAuditJournal auditJournal = new AppendOnlyAuditJournal(auditJournalConfig)) {
+      for (int eventIndex = 1; eventIndex <= 12; eventIndex++) {
+        lastAuditRecord = appendTestRecord(auditJournal, eventIndex);
+      }
+    }
+
+    List<Path> journalPaths = listJournalPaths(journalRoot);
+
+    assertTrue(journalPaths.size() > 1);
+
+    AuditVerifier.VerificationResult verificationResult = verifyAllJournals(journalRoot, keyPair);
+
+    assertTrue(verificationResult.valid());
+    assertEquals(12, verificationResult.verifiedRecords());
+    assertEquals(lastAuditRecord.getRecordHash(), verificationResult.lastHash());
+  }
+
+  @Test
+  void shouldRotateOldJournalDateAndContinueHashChain() throws Exception {
+    Path journalRoot = temporaryDirectory.resolve("journal");
+
+    AuditKeyUtils auditKeyUtils = new AuditKeyUtils();
+    KeyPair keyPair = auditKeyUtils.generateEd25519KeyPair();
+
+    AuditRecord firstAuditRecord;
+    Path originalJournalPath;
+
+    try (AppendOnlyAuditJournal auditJournal = buildAuditJournal(journalRoot, keyPair)) {
+      firstAuditRecord = appendTestRecord(auditJournal, 1);
+      originalJournalPath = auditJournal.getActiveJournalPath();
+    }
+
+    LocalDate oldJournalDate = LocalDate.now().minusDays(1);
+    Path oldJournalDirectory = journalRoot.resolve(oldJournalDate.toString());
+    Path oldJournalPath = oldJournalDirectory.resolve(
+        String.format("audit-%s-%06d.jsonl", oldJournalDate, 1)
+    );
+
+    Files.createDirectories(oldJournalDirectory);
+    Files.move(originalJournalPath, oldJournalPath);
+
+    try (AppendOnlyAuditJournal auditJournal = buildAuditJournal(journalRoot, keyPair)) {
+      assertNotEquals(oldJournalPath, auditJournal.getActiveJournalPath());
+      assertEquals(LocalDate.now().toString(), auditJournal.getActiveJournalPath().getParent().getFileName().toString());
+
+      AuditRecord secondAuditRecord = appendTestRecord(auditJournal, 2);
+
+      assertEquals(2, secondAuditRecord.getSequenceNumber());
+      assertEquals(firstAuditRecord.getRecordHash(), secondAuditRecord.getPreviousRecordHash());
+    }
+
+    AuditVerifier.VerificationResult verificationResult = verifyAllJournals(journalRoot, keyPair);
+
+    assertTrue(verificationResult.valid());
+    assertEquals(2, verificationResult.verifiedRecords());
+  }
+
+  @Test
+  void shouldFailStartupWhenExistingJournalWasTampered() throws Exception {
+    Path journalRoot = temporaryDirectory.resolve("journal");
+
+    AuditKeyUtils auditKeyUtils = new AuditKeyUtils();
+    KeyPair keyPair = auditKeyUtils.generateEd25519KeyPair();
+
+    Path journalPath;
+
+    try (AppendOnlyAuditJournal auditJournal = buildAuditJournal(journalRoot, keyPair)) {
+      appendTestRecord(auditJournal, 1);
+      journalPath = auditJournal.getActiveJournalPath();
+    }
+
+    String journalContent = Files.readString(journalPath, StandardCharsets.UTF_8);
+    String modifiedJournalContent = journalContent.replace("value-1", "tampered-value");
+
+    Files.writeString(journalPath, modifiedJournalContent, StandardCharsets.UTF_8);
+
+    IOException exception = assertThrows(
+        IOException.class,
+        () -> buildAuditJournal(journalRoot, keyPair).close()
+    );
+
+    assertTrue(exception.getMessage().contains("verification failed"));
   }
 
   @Test
@@ -203,22 +346,13 @@ class AppendOnlyAuditJournalTest {
       AuditLogger auditLogger = new AuditLogger(auditJournal);
 
       for (int eventIndex = 1; eventIndex <= 3; eventIndex++) {
-        AuditContext auditContext = AuditContext.builder()
-            .auditId("audit-" + eventIndex)
-            .correlationId("correlation-" + eventIndex)
-            .actor("unit-test")
-            .actorType("test")
-            .source("source-system")
-            .destination("destination-system")
-            .subject("test-subject-" + eventIndex)
-            .action("test-action")
-            .outcome(AuditOutcome.SUCCESS)
-            .timestamp(Instant.parse("2026-05-25T00:00:0" + eventIndex + "Z"))
-            .build();
-
         auditLogger.audit(
             TestAuditMessages.TEST_AUDIT_EVENT,
-            auditContext,
+            buildAuditContext(
+                "audit-" + eventIndex,
+                "correlation-" + eventIndex,
+                "test-subject-" + eventIndex
+            ),
             "value-" + eventIndex,
             "record-" + eventIndex
         );
@@ -233,7 +367,7 @@ class AppendOnlyAuditJournalTest {
     Files.writeString(journalPath, modifiedJournalContent, StandardCharsets.UTF_8);
 
     AuditVerifier auditVerifier = new AuditVerifier(
-        (java.security.interfaces.EdECPublicKey) keyPair.getPublic()
+        (EdECPublicKey) keyPair.getPublic()
     );
 
     AuditVerifier.VerificationResult verificationResult = auditVerifier.verifyJournal(journalPath);
@@ -298,22 +432,9 @@ class AppendOnlyAuditJournalTest {
     )) {
       AuditLogger auditLogger = new AuditLogger(auditJournal);
 
-      AuditContext auditContext = AuditContext.builder()
-          .auditId("audit-1")
-          .correlationId("correlation-1")
-          .actor("unit-test")
-          .actorType("test")
-          .source("source-system")
-          .destination("destination-system")
-          .subject("test-subject")
-          .action("test-action")
-          .outcome(AuditOutcome.SUCCESS)
-          .timestamp(Instant.parse("2026-05-25T00:00:00Z"))
-          .build();
-
       auditLogger.audit(
           TestAuditMessages.TEST_AUDIT_EVENT,
-          auditContext,
+          buildAuditContext("audit-1", "correlation-1", "test-subject"),
           "value-1",
           "value-2"
       );
@@ -327,13 +448,81 @@ class AppendOnlyAuditJournalTest {
     Files.writeString(journalPath, modifiedJournalContent, StandardCharsets.UTF_8);
 
     AuditVerifier auditVerifier = new AuditVerifier(
-        (java.security.interfaces.EdECPublicKey) keyPair.getPublic()
+        (EdECPublicKey) keyPair.getPublic()
     );
 
     AuditVerifier.VerificationResult verificationResult = auditVerifier.verifyJournal(journalPath);
 
     assertFalse(verificationResult.valid());
     assertTrue(verificationResult.error().contains("Record hash mismatch"));
+  }
+
+  private AppendOnlyAuditJournal buildAuditJournal(Path journalRoot, KeyPair keyPair) throws IOException {
+    AuditJournalConfig auditJournalConfig = AuditJournalConfig.builder()
+        .journalRoot(journalRoot)
+        .signingKey(keyPair.getPrivate())
+        .verificationKey((EdECPublicKey) keyPair.getPublic())
+        .maxJournalSizeBytes(64L * 1024L * 1024L)
+        .rotateDaily(true)
+        .failOnInvalidExistingJournal(true)
+        .build();
+
+    return new AppendOnlyAuditJournal(auditJournalConfig);
+  }
+
+  private AuditRecord appendTestRecord(AppendOnlyAuditJournal auditJournal, int eventIndex) throws IOException {
+    AuditLogger auditLogger = new AuditLogger(auditJournal);
+
+    return auditLogger.audit(
+        TestAuditMessages.TEST_AUDIT_EVENT,
+        buildAuditContext(
+            "audit-" + eventIndex,
+            "correlation-" + eventIndex,
+            "test-subject-" + eventIndex
+        ),
+        "value-" + eventIndex,
+        "record-" + eventIndex
+    );
+  }
+
+  private AuditContext buildAuditContext(
+      String auditId,
+      String correlationId,
+      String subject
+  ) {
+    return AuditContext.builder()
+        .auditId(auditId)
+        .correlationId(correlationId)
+        .actor("unit-test")
+        .actorType("test")
+        .source("source-system")
+        .destination("destination-system")
+        .subject(subject)
+        .action("test-action")
+        .outcome(AuditOutcome.SUCCESS)
+        .timestamp(Instant.parse("2026-05-25T00:00:00Z"))
+        .build();
+  }
+
+  private AuditVerifier.VerificationResult verifyAllJournals(
+      Path journalRoot,
+      KeyPair keyPair
+  ) throws IOException {
+    AuditVerifier auditVerifier = new AuditVerifier(
+        (EdECPublicKey) keyPair.getPublic()
+    );
+
+    return auditVerifier.verifyJournals(listJournalPaths(journalRoot));
+  }
+
+  private List<Path> listJournalPaths(Path journalRoot) throws IOException {
+    try (Stream<Path> pathStream = Files.walk(journalRoot)) {
+      return pathStream
+          .filter(Files::isRegularFile)
+          .filter(path -> path.getFileName().toString().endsWith(".jsonl"))
+          .sorted()
+          .toList();
+    }
   }
 
   private enum TestAuditMessages implements LogMessage {

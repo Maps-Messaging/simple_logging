@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.interfaces.EdECPublicKey;
+import java.util.List;
 
 public class AuditVerifier {
 
@@ -28,10 +29,40 @@ public class AuditVerifier {
   }
 
   public VerificationResult verifyJournal(Path journalPath) throws IOException {
+    return verifyJournals(List.of(journalPath));
+  }
+
+  public VerificationResult verifyJournals(List<Path> journalPaths) throws IOException {
     long expectedSequenceNumber = 1;
     long verifiedRecords = 0;
     String previousRecordHash = GENESIS_HASH;
 
+    for (Path journalPath : journalPaths) {
+      VerificationState verificationState = verifyJournal(
+          journalPath,
+          expectedSequenceNumber,
+          verifiedRecords,
+          previousRecordHash
+      );
+
+      if (!verificationState.verificationResult().valid()) {
+        return verificationState.verificationResult();
+      }
+
+      expectedSequenceNumber = verificationState.nextSequenceNumber();
+      verifiedRecords = verificationState.verifiedRecords();
+      previousRecordHash = verificationState.previousRecordHash();
+    }
+
+    return VerificationResult.successful(verifiedRecords, previousRecordHash);
+  }
+
+  private VerificationState verifyJournal(
+      Path journalPath,
+      long expectedSequenceNumber,
+      long verifiedRecords,
+      String previousRecordHash
+  ) throws IOException {
     try (BufferedReader bufferedReader = Files.newBufferedReader(journalPath, StandardCharsets.UTF_8)) {
       String line = bufferedReader.readLine();
 
@@ -47,14 +78,14 @@ public class AuditVerifier {
               : "";
 
           if (sequenceNumber != expectedSequenceNumber) {
-            return VerificationResult.failed(
+            return VerificationState.failed(
                 verifiedRecords,
                 "Expected sequence " + expectedSequenceNumber + " but found " + sequenceNumber
             );
           }
 
           if (!previousRecordHash.equals(storedPreviousRecordHash)) {
-            return VerificationResult.failed(
+            return VerificationState.failed(
                 verifiedRecords,
                 "Previous hash mismatch at sequence " + sequenceNumber
             );
@@ -67,7 +98,7 @@ public class AuditVerifier {
           String calculatedHash = auditCrypto.sha256Hex(canonicalJson);
 
           if (!calculatedHash.equals(storedRecordHash)) {
-            return VerificationResult.failed(
+            return VerificationState.failed(
                 verifiedRecords,
                 "Record hash mismatch at sequence " + sequenceNumber
             );
@@ -81,7 +112,7 @@ public class AuditVerifier {
             );
 
             if (!signatureValid) {
-              return VerificationResult.failed(
+              return VerificationState.failed(
                   verifiedRecords,
                   "Signature mismatch at sequence " + sequenceNumber
               );
@@ -97,7 +128,41 @@ public class AuditVerifier {
       }
     }
 
-    return VerificationResult.successful(verifiedRecords, previousRecordHash);
+    return VerificationState.successful(
+        expectedSequenceNumber,
+        verifiedRecords,
+        previousRecordHash
+    );
+  }
+
+  private record VerificationState(
+      VerificationResult verificationResult,
+      long nextSequenceNumber,
+      long verifiedRecords,
+      String previousRecordHash
+  ) {
+
+    private static VerificationState successful(
+        long nextSequenceNumber,
+        long verifiedRecords,
+        String previousRecordHash
+    ) {
+      return new VerificationState(
+          VerificationResult.successful(verifiedRecords, previousRecordHash),
+          nextSequenceNumber,
+          verifiedRecords,
+          previousRecordHash
+      );
+    }
+
+    private static VerificationState failed(long verifiedRecords, String error) {
+      return new VerificationState(
+          VerificationResult.failed(verifiedRecords, error),
+          0,
+          verifiedRecords,
+          ""
+      );
+    }
   }
 
   public record VerificationResult(
