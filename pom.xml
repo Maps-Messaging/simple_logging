@@ -239,6 +239,12 @@
         <groupId>org.apache.maven.plugins</groupId>
         <version>3.12.0</version>
       </plugin>
+      <!-- Sonar -->
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>5.7.0.6970</version>
+      </plugin>
       <plugin>
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-maven</artifactId>
