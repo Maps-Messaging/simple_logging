@@ -106,6 +106,64 @@ class SimpleLogTest {
   }
 
   @Test
+  void trailingThrowableIsNotCountedAsMessageParameter() {
+    Exception ex = new Exception("Just a test");
+    Logger logger = LoggerFactory.getLogger(SimpleLogTest.class);
+
+    logger.log(LogMessages.ERROR, "Error Message", ex);
+
+    Assertions.assertEquals(1, InMemoryAppender.logEvents.size());
+    Assertions.assertEquals("Error Testing Only - Error Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+    Assertions.assertNotNull(InMemoryAppender.logEvents.get(0).getThrowableProxy());
+    Assertions.assertEquals(Exception.class.getName(), InMemoryAppender.logEvents.get(0).getThrowableProxy().getClassName());
+    Assertions.assertEquals(ex.getMessage(), InMemoryAppender.logEvents.get(0).getThrowableProxy().getMessage());
+  }
+
+  @Test
+  void legacyThrowableOverloadLogsSingleEvent() {
+    Exception ex = new Exception("Just a test");
+    Logger logger = LoggerFactory.getLogger(SimpleLogTest.class);
+
+    logger.log(LogMessages.ERROR, ex, "Error Message");
+
+    Assertions.assertEquals(1, InMemoryAppender.logEvents.size());
+    Assertions.assertEquals("Error Testing Only - Error Message", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+    Assertions.assertNotNull(InMemoryAppender.logEvents.get(0).getThrowableProxy());
+    Assertions.assertEquals(Exception.class.getName(), InMemoryAppender.logEvents.get(0).getThrowableProxy().getClassName());
+    Assertions.assertEquals(ex.getMessage(), InMemoryAppender.logEvents.get(0).getThrowableProxy().getMessage());
+  }
+
+  @Test
+  void trailingThrowableDoesNotHideMissingMessageParameter() {
+    Exception ex = new Exception("Just a test");
+    Logger logger = LoggerFactory.getLogger(SimpleLogTest.class);
+
+    logger.log(LogMessages.ERROR, (Object) ex);
+
+    Assertions.assertEquals(2, InMemoryAppender.logEvents.size());
+    Assertions.assertEquals(
+        "Invalid number of arguments for the log message, expected 1 received 0",
+        InMemoryAppender.logEvents.get(0).getFormattedMessage()
+    );
+    Assertions.assertEquals("Error Testing Only - {}", InMemoryAppender.logEvents.get(1).getFormattedMessage());
+    Assertions.assertNotNull(InMemoryAppender.logEvents.get(1).getThrowableProxy());
+    Assertions.assertEquals(Exception.class.getName(), InMemoryAppender.logEvents.get(1).getThrowableProxy().getClassName());
+  }
+
+  @Test
+  void zeroParameterMessageAllowsTrailingThrowable() {
+    Exception ex = new Exception("Just a test");
+    Logger logger = LoggerFactory.getLogger(SimpleLogTest.class);
+
+    logger.log(LogMessages.PROPERTY_MANAGER_START, (Object) ex);
+
+    Assertions.assertEquals(1, InMemoryAppender.logEvents.size());
+    Assertions.assertEquals("Starting Property Manager", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+    Assertions.assertNotNull(InMemoryAppender.logEvents.get(0).getThrowableProxy());
+    Assertions.assertEquals(Exception.class.getName(), InMemoryAppender.logEvents.get(0).getThrowableProxy().getClassName());
+  }
+
+  @Test
   void simpleThreadContextTest(){
     ThreadContext.put("test", "value");
     ThreadContext.put("test1", "value1");
