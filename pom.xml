@@ -109,7 +109,7 @@
       </activation>
       <properties>
         <dependency.check.autoUpdate>false</dependency.check.autoUpdate>
-        <dependency.check.dataDirectory>/var/cache/dependency-check/12</dependency.check.dataDirectory>
+        <dependency.check.dataDirectory>/var/cache/dependency-check/13</dependency.check.dataDirectory>
       </properties>
     </profile>
     <profile>
@@ -262,7 +262,7 @@
       <plugin>
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-maven</artifactId>
-        <version>12.2.2</version>
+        <version>13.0.0</version>
         <configuration>
           <autoUpdate>${dependency.check.autoUpdate}</autoUpdate>
           <dataDirectory>${dependency.check.dataDirectory}</dataDirectory>
