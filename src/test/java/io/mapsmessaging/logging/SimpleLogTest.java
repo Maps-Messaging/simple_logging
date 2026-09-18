@@ -93,13 +93,13 @@ class SimpleLogTest {
     Assertions.assertEquals(1, LogMessages.TRACE.getParameterCount());
     if(logger.isTraceEnabled()){
       logger.log(LogMessages.TRACE, "Trace Message", "extra");
-      Assertions.assertEquals("Invalid number of arguments for the log messages, expected 1 received 2", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      Assertions.assertEquals("Invalid number of arguments for the log message, expected 1 received 2", InMemoryAppender.logEvents.get(0).getFormattedMessage());
       Assertions.assertEquals("Trace Testing Only - "+"Trace Message", InMemoryAppender.logEvents.get(1).getFormattedMessage());
       InMemoryAppender.clearLogEvents();
     }
     if(logger.isDebugEnabled()){
       logger.log(LogMessages.DEBUG,  ex, "Debug Message", "extra");
-      Assertions.assertEquals("Invalid number of arguments for the log messages, expected 1 received 2", InMemoryAppender.logEvents.get(0).getFormattedMessage());
+      Assertions.assertEquals("Invalid number of arguments for the log message, expected 1 received 2", InMemoryAppender.logEvents.get(0).getFormattedMessage());
       Assertions.assertEquals("Debug Testing Only - "+"Debug Message", InMemoryAppender.logEvents.get(1).getFormattedMessage());
       InMemoryAppender.clearLogEvents();
     }

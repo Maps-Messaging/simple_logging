@@ -58,9 +58,13 @@ public class Logger {
    * @param args Variable list of arguments that will be added to the log message
    */
   public void log(LogMessage logMessage, Object... args) {
-    if (logAt(logMessage)) {
-      if (logMessage.getParameterCount() != args.length) {
-        localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}", logMessage.getParameterCount(), args.length);
+    if (logAt(logMessage)) {    int expected = logMessage.getParameterCount();
+      int supplied = args.length;
+
+      boolean hasThrowable = supplied == expected + 1 && args[supplied - 1] instanceof Throwable;
+
+      if (supplied != expected && !hasThrowable) {
+        localLogger.warn("Invalid number of arguments for the log message, expected {} received {}", expected, supplied);
       }
 
       ThreadContext.put(DIVISION, logMessage.getCategory().getDivision());
