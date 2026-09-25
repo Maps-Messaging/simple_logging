@@ -73,7 +73,7 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <gpg.keyname>matthew.buckton@mapsmessaging.io</gpg.keyname>
+    <gpg.keyname>admin@mapsmessaging.io</gpg.keyname>
 
     <runSuite>**/*Suite.class</runSuite>
     <!-- Below property indicates the pattern of the test suite -->
