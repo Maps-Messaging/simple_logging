@@ -155,6 +155,12 @@
             </goals>
             <configuration>
               <keyname>${gpg.keyname}</keyname>
+              <passphraseEnvName>MAVEN_GPG_PASSPHRASE</passphraseEnvName>
+              <bestPractices>true</bestPractices>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
             </configuration>
           </execution>
         </executions>
