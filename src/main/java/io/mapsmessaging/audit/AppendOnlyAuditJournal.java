@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.PrivateKey;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -31,6 +32,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   private final AuditCrypto auditCrypto;
   private final Gson gson;
   private final PrivateKey signingKey;
+  private final Clock clock;
   private final AtomicLong sequenceNumber;
   private final long maxJournalSizeBytes;
   private final boolean rotateDaily;
@@ -52,6 +54,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   public AppendOnlyAuditJournal(AuditJournalConfig auditJournalConfig) throws IOException {
     this.journalRoot = auditJournalConfig.getJournalRoot();
     this.signingKey = auditJournalConfig.getSigningKey();
+    this.clock = auditJournalConfig.getClock();
     this.maxJournalSizeBytes = auditJournalConfig.getMaxJournalSizeBytes();
     this.rotateDaily = auditJournalConfig.isRotateDaily();
     this.failOnInvalidExistingJournal = auditJournalConfig.isFailOnInvalidExistingJournal();
@@ -122,7 +125,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
     List<JournalFile> journalFiles = discoverJournalFiles();
 
     if (journalFiles.isEmpty()) {
-      initialiseJournal(LocalDate.now(), 1);
+      initialiseJournal(LocalDate.now(clock), 1);
       return;
     }
 
@@ -138,7 +141,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
         throw new IOException("Existing audit journal verification failed: " + verificationResult.error());
       }
 
-      LocalDate localDate = LocalDate.now();
+      LocalDate localDate = LocalDate.now(clock);
       initialiseJournal(localDate, nextJournalIndexForDate(localDate, journalFiles));
       return;
     }
@@ -189,7 +192,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   }
 
   private boolean shouldRotateForRecoveredJournal() throws IOException {
-    return rotateDaily && !activeJournalDate.equals(LocalDate.now())
+    return rotateDaily && !activeJournalDate.equals(LocalDate.now(clock))
         || Files.exists(activeJournalPath)
         && Files.size(activeJournalPath) >= maxJournalSizeBytes;
   }
@@ -207,7 +210,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   }
 
   private void rotateForDateIfRequired() throws IOException {
-    if (rotateDaily && !activeJournalDate.equals(LocalDate.now())) {
+    if (rotateDaily && !activeJournalDate.equals(LocalDate.now(clock))) {
       rotateJournalFile();
     }
   }
@@ -224,7 +227,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   private void rotateJournalFile() throws IOException {
     close();
 
-    LocalDate localDate = LocalDate.now();
+    LocalDate localDate = LocalDate.now(clock);
 
     if (!localDate.equals(activeJournalDate)) {
       activeJournalDate = localDate;
