@@ -38,9 +38,11 @@ import java.util.Base64;
 
 public class AuditKeyUtils {
 
+  private static final String ED25519 = "Ed25519";
+
   public KeyPair generateEd25519KeyPair() {
     try {
-      KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("Ed25519");
+      KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(ED25519);
       return keyPairGenerator.generateKeyPair();
     } catch (NoSuchAlgorithmException exception) {
       throw new IllegalStateException("Unable to generate Ed25519 key pair", exception);
@@ -60,7 +62,7 @@ public class AuditKeyUtils {
 
     try {
       PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-      KeyFactory keyFactory = KeyFactory.getInstance("Ed25519");
+      KeyFactory keyFactory = KeyFactory.getInstance(ED25519);
       return keyFactory.generatePrivate(keySpec);
     } catch (GeneralSecurityException exception) {
       throw new IOException("Unable to read Ed25519 private key", exception);
@@ -72,7 +74,7 @@ public class AuditKeyUtils {
 
     try {
       X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
-      KeyFactory keyFactory = KeyFactory.getInstance("Ed25519");
+      KeyFactory keyFactory = KeyFactory.getInstance(ED25519);
       return (EdECPublicKey) keyFactory.generatePublic(keySpec);
     } catch (GeneralSecurityException | ClassCastException exception) {
       throw new IOException("Unable to read Ed25519 public key", exception);
