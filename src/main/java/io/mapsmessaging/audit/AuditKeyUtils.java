@@ -27,6 +27,8 @@ import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.EdECPublicKey;
@@ -40,7 +42,7 @@ public class AuditKeyUtils {
     try {
       KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("Ed25519");
       return keyPairGenerator.generateKeyPair();
-    } catch (Exception exception) {
+    } catch (NoSuchAlgorithmException exception) {
       throw new IllegalStateException("Unable to generate Ed25519 key pair", exception);
     }
   }
@@ -54,23 +56,25 @@ public class AuditKeyUtils {
   }
 
   public PrivateKey readPrivateKey(Path path) throws IOException {
+    byte[] keyBytes = readPem(path, "PRIVATE KEY");
+
     try {
-      byte[] keyBytes = readPem(path, "PRIVATE KEY");
       PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
       KeyFactory keyFactory = KeyFactory.getInstance("Ed25519");
       return keyFactory.generatePrivate(keySpec);
-    } catch (Exception exception) {
+    } catch (GeneralSecurityException exception) {
       throw new IOException("Unable to read Ed25519 private key", exception);
     }
   }
 
   public EdECPublicKey readPublicKey(Path path) throws IOException {
+    byte[] keyBytes = readPem(path, "PUBLIC KEY");
+
     try {
-      byte[] keyBytes = readPem(path, "PUBLIC KEY");
       X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
       KeyFactory keyFactory = KeyFactory.getInstance("Ed25519");
       return (EdECPublicKey) keyFactory.generatePublic(keySpec);
-    } catch (Exception exception) {
+    } catch (GeneralSecurityException | ClassCastException exception) {
       throw new IOException("Unable to read Ed25519 public key", exception);
     }
   }

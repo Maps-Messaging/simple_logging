@@ -10,9 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.PrivateKey;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -30,6 +32,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   private final AuditCrypto auditCrypto;
   private final Gson gson;
   private final PrivateKey signingKey;
+  private final Clock clock;
   private final AtomicLong sequenceNumber;
   private final long maxJournalSizeBytes;
   private final boolean rotateDaily;
@@ -51,6 +54,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   public AppendOnlyAuditJournal(AuditJournalConfig auditJournalConfig) throws IOException {
     this.journalRoot = auditJournalConfig.getJournalRoot();
     this.signingKey = auditJournalConfig.getSigningKey();
+    this.clock = auditJournalConfig.getClock();
     this.maxJournalSizeBytes = auditJournalConfig.getMaxJournalSizeBytes();
     this.rotateDaily = auditJournalConfig.isRotateDaily();
     this.failOnInvalidExistingJournal = auditJournalConfig.isFailOnInvalidExistingJournal();
@@ -60,7 +64,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
         .disableHtmlEscaping()
         .create();
 
-    this.sequenceNumber = new AtomicLong(0);
+    this.sequenceNumber = new AtomicLong();
     this.previousRecordHash = GENESIS_HASH;
 
     recoverExistingJournalState(auditJournalConfig);
@@ -121,10 +125,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
     List<JournalFile> journalFiles = discoverJournalFiles();
 
     if (journalFiles.isEmpty()) {
-      LocalDate localDate = LocalDate.now();
-      activeJournalDate = localDate;
-      activeJournalIndex = 1;
-      activeJournalPath = buildJournalPath(activeJournalDate, activeJournalIndex);
+      initialiseJournal(LocalDate.now(clock), 1);
       return;
     }
 
@@ -140,10 +141,8 @@ public class AppendOnlyAuditJournal implements AuditJournal {
         throw new IOException("Existing audit journal verification failed: " + verificationResult.error());
       }
 
-      LocalDate localDate = LocalDate.now();
-      activeJournalDate = localDate;
-      activeJournalIndex = nextJournalIndexForDate(localDate, journalFiles);
-      activeJournalPath = buildJournalPath(activeJournalDate, activeJournalIndex);
+      LocalDate localDate = LocalDate.now(clock);
+      initialiseJournal(localDate, nextJournalIndexForDate(localDate, journalFiles));
       return;
     }
 
@@ -170,7 +169,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
       return pathStream
           .filter(Files::isRegularFile)
           .map(this::toJournalFile)
-          .filter(journalFile -> journalFile != null)
+          .flatMap(Optional::stream)
           .sorted(Comparator
               .comparing(JournalFile::localDate)
               .thenComparingInt(JournalFile::index))
@@ -178,26 +177,23 @@ public class AppendOnlyAuditJournal implements AuditJournal {
     }
   }
 
-  private JournalFile toJournalFile(Path path) {
+  private Optional<JournalFile> toJournalFile(Path path) {
     String fileName = path.getFileName().toString();
     Matcher matcher = JOURNAL_FILE_PATTERN.matcher(fileName);
 
     if (!matcher.matches()) {
-      return null;
+      return Optional.empty();
     }
 
     LocalDate localDate = LocalDate.parse(matcher.group(1));
     int index = Integer.parseInt(matcher.group(2));
 
-    return new JournalFile(path, localDate, index);
+    return Optional.of(new JournalFile(path, localDate, index));
   }
 
   private boolean shouldRotateForRecoveredJournal() throws IOException {
-    if (rotateDaily && !activeJournalDate.equals(LocalDate.now())) {
-      return true;
-    }
-
-    return Files.exists(activeJournalPath)
+    return rotateDaily && !activeJournalDate.equals(LocalDate.now(clock))
+        || Files.exists(activeJournalPath)
         && Files.size(activeJournalPath) >= maxJournalSizeBytes;
   }
 
@@ -214,13 +210,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   }
 
   private void rotateForDateIfRequired() throws IOException {
-    if (!rotateDaily) {
-      return;
-    }
-
-    LocalDate localDate = LocalDate.now();
-
-    if (!activeJournalDate.equals(localDate)) {
+    if (rotateDaily && !activeJournalDate.equals(LocalDate.now(clock))) {
       rotateJournalFile();
     }
   }
@@ -237,7 +227,7 @@ public class AppendOnlyAuditJournal implements AuditJournal {
   private void rotateJournalFile() throws IOException {
     close();
 
-    LocalDate localDate = LocalDate.now();
+    LocalDate localDate = LocalDate.now(clock);
 
     if (!localDate.equals(activeJournalDate)) {
       activeJournalDate = localDate;
@@ -254,6 +244,12 @@ public class AppendOnlyAuditJournal implements AuditJournal {
     }
 
     openWritableJournalFile();
+  }
+
+  private void initialiseJournal(LocalDate localDate, int index) {
+    activeJournalDate = localDate;
+    activeJournalIndex = index;
+    activeJournalPath = buildJournalPath(activeJournalDate, activeJournalIndex);
   }
 
   private int nextJournalIndexForDate(LocalDate localDate, List<JournalFile> journalFiles) {

@@ -21,14 +21,18 @@
 package io.mapsmessaging.audit;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class AuditPayloadStore {
+
+  private static final Pattern UNSAFE_TRANSLATION_ID = Pattern.compile("[^a-zA-Z0-9._-]");
 
   private final Path payloadRoot;
   private final AuditCrypto auditCrypto;
@@ -55,22 +59,14 @@ public class AuditPayloadStore {
 
     Path payloadPath = payloadDirectory.resolve(fileName);
 
-    try (FileChannel fileChannel = FileChannel.open(
-        payloadPath,
-        StandardOpenOption.CREATE_NEW,
-        StandardOpenOption.WRITE
-    )) {
-      fileChannel.write(java.nio.ByteBuffer.wrap(payload));
-      fileChannel.force(true);
-    }
+    writeAndForce(payloadPath, payload);
 
     String payloadHash = auditCrypto.sha256Hex(payload);
-    long payloadSize = payload.length;
 
     return AuditPayloadReference.builder()
         .name(name)
         .path(payloadRoot.relativize(payloadPath).toString())
-        .size(payloadSize)
+        .size(payload.length)
         .sha256(payloadHash)
         .build();
   }
@@ -80,6 +76,21 @@ public class AuditPayloadStore {
       return UUID.randomUUID().toString();
     }
 
-    return translationId.replaceAll("[^a-zA-Z0-9._-]", "_");
+    return UNSAFE_TRANSLATION_ID.matcher(translationId).replaceAll("_");
+  }
+
+  private void writeAndForce(Path path, byte[] payload) throws IOException {
+    ByteBuffer byteBuffer = ByteBuffer.wrap(payload);
+
+    try (FileChannel fileChannel = FileChannel.open(
+        path,
+        StandardOpenOption.CREATE_NEW,
+        StandardOpenOption.WRITE
+    )) {
+      while (byteBuffer.hasRemaining()) {
+        fileChannel.write(byteBuffer);
+      }
+      fileChannel.force(true);
+    }
   }
 }
