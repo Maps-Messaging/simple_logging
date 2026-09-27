@@ -51,6 +51,7 @@ public class AuditManifestWriter {
         .create();
   }
 
+  @SuppressWarnings("java:S107")
   public AuditManifest writeManifest(
       long firstSequenceNumber,
       long lastSequenceNumber,
@@ -62,6 +63,20 @@ public class AuditManifestWriter {
       List<AuditPayloadReference> journalFiles,
       List<AuditPayloadReference> payloadFiles
   ) throws IOException {
+    return writeManifest(new ManifestRequest(
+        firstSequenceNumber,
+        lastSequenceNumber,
+        firstEventHash,
+        lastEventHash,
+        eventCount,
+        mapsBuild,
+        translatorBuild,
+        journalFiles,
+        payloadFiles
+    ));
+  }
+
+  public AuditManifest writeManifest(ManifestRequest request) throws IOException {
     Files.createDirectories(manifestRoot);
 
     Instant createdAt = Instant.now();
@@ -72,15 +87,15 @@ public class AuditManifestWriter {
     AuditManifest auditManifest = AuditManifest.builder()
         .manifestId(manifestId)
         .createdAt(createdAt)
-        .firstSequenceNumber(firstSequenceNumber)
-        .lastSequenceNumber(lastSequenceNumber)
-        .firstEventHash(firstEventHash)
-        .lastEventHash(lastEventHash)
-        .eventCount(eventCount)
-        .mapsBuild(mapsBuild)
-        .translatorBuild(translatorBuild)
-        .journalFiles(journalFiles)
-        .payloadFiles(payloadFiles)
+        .firstSequenceNumber(request.firstSequenceNumber())
+        .lastSequenceNumber(request.lastSequenceNumber())
+        .firstEventHash(request.firstEventHash())
+        .lastEventHash(request.lastEventHash())
+        .eventCount(request.eventCount())
+        .mapsBuild(request.mapsBuild())
+        .translatorBuild(request.translatorBuild())
+        .journalFiles(request.journalFiles())
+        .payloadFiles(request.payloadFiles())
         .build();
 
     String canonicalJson = new GsonBuilder()
@@ -102,6 +117,19 @@ public class AuditManifestWriter {
     }
 
     return auditManifest;
+  }
+
+  public record ManifestRequest(
+      long firstSequenceNumber,
+      long lastSequenceNumber,
+      String firstEventHash,
+      String lastEventHash,
+      long eventCount,
+      String mapsBuild,
+      String translatorBuild,
+      List<AuditPayloadReference> journalFiles,
+      List<AuditPayloadReference> payloadFiles
+  ) {
   }
 
   private void writeAndForce(Path path, String data) throws IOException {
