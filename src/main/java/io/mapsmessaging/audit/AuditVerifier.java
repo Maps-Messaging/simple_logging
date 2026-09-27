@@ -64,67 +64,26 @@ public class AuditVerifier {
       String previousRecordHash
   ) throws IOException {
     try (BufferedReader bufferedReader = Files.newBufferedReader(journalPath, StandardCharsets.UTF_8)) {
-      String line = bufferedReader.readLine();
+      String line;
 
-      while (line != null) {
-        if (!line.isBlank()) {
-          JsonObject journalObject = gson.fromJson(line, JsonObject.class);
-
-          long sequenceNumber = journalObject.get("sequenceNumber").getAsLong();
-          String storedPreviousRecordHash = journalObject.get("previousRecordHash").getAsString();
-          String storedRecordHash = journalObject.get("recordHash").getAsString();
-          String storedSignature = journalObject.has("signature")
-              ? journalObject.get("signature").getAsString()
-              : "";
-
-          if (sequenceNumber != expectedSequenceNumber) {
-            return VerificationState.failed(
-                verifiedRecords,
-                "Expected sequence " + expectedSequenceNumber + " but found " + sequenceNumber
-            );
-          }
-
-          if (!previousRecordHash.equals(storedPreviousRecordHash)) {
-            return VerificationState.failed(
-                verifiedRecords,
-                "Previous hash mismatch at sequence " + sequenceNumber
-            );
-          }
-
-          journalObject.remove("recordHash");
-          journalObject.remove("signature");
-
-          String canonicalJson = gson.toJson(journalObject);
-          String calculatedHash = auditCrypto.sha256Hex(canonicalJson);
-
-          if (!calculatedHash.equals(storedRecordHash)) {
-            return VerificationState.failed(
-                verifiedRecords,
-                "Record hash mismatch at sequence " + sequenceNumber
-            );
-          }
-
-          if (publicKey != null && storedSignature != null && !storedSignature.isBlank()) {
-            boolean signatureValid = auditCrypto.verifySignature(
-                publicKey,
-                storedRecordHash,
-                storedSignature
-            );
-
-            if (!signatureValid) {
-              return VerificationState.failed(
-                  verifiedRecords,
-                  "Signature mismatch at sequence " + sequenceNumber
-              );
-            }
-          }
-
-          previousRecordHash = storedRecordHash;
-          expectedSequenceNumber++;
-          verifiedRecords++;
+      while ((line = bufferedReader.readLine()) != null) {
+        if (line.isBlank()) {
+          continue;
         }
 
-        line = bufferedReader.readLine();
+        RecordVerification recordVerification = verifyRecord(
+            line,
+            expectedSequenceNumber,
+            previousRecordHash
+        );
+
+        if (!recordVerification.valid()) {
+          return VerificationState.failed(verifiedRecords, recordVerification.error());
+        }
+
+        previousRecordHash = recordVerification.recordHash();
+        expectedSequenceNumber++;
+        verifiedRecords++;
       }
     }
 
@@ -133,6 +92,89 @@ public class AuditVerifier {
         verifiedRecords,
         previousRecordHash
     );
+  }
+
+  private RecordVerification verifyRecord(
+      String line,
+      long expectedSequenceNumber,
+      String previousRecordHash
+  ) {
+    JsonObject journalObject = gson.fromJson(line, JsonObject.class);
+
+    long sequenceNumber = journalObject.get("sequenceNumber").getAsLong();
+    String storedPreviousRecordHash = journalObject.get("previousRecordHash").getAsString();
+    String storedRecordHash = journalObject.get("recordHash").getAsString();
+    String storedSignature = journalObject.has("signature")
+        ? journalObject.get("signature").getAsString()
+        : "";
+
+    String validationError = validateSequenceAndPreviousHash(
+        sequenceNumber,
+        expectedSequenceNumber,
+        storedPreviousRecordHash,
+        previousRecordHash
+    );
+
+    if (validationError != null) {
+      return RecordVerification.failed(validationError);
+    }
+
+    if (!recordHashMatches(journalObject, storedRecordHash)) {
+      return RecordVerification.failed("Record hash mismatch at sequence " + sequenceNumber);
+    }
+
+    if (!signatureMatches(storedRecordHash, storedSignature)) {
+      return RecordVerification.failed("Signature mismatch at sequence " + sequenceNumber);
+    }
+
+    return RecordVerification.successful(storedRecordHash);
+  }
+
+  private String validateSequenceAndPreviousHash(
+      long sequenceNumber,
+      long expectedSequenceNumber,
+      String storedPreviousRecordHash,
+      String previousRecordHash
+  ) {
+    if (sequenceNumber != expectedSequenceNumber) {
+      return "Expected sequence " + expectedSequenceNumber + " but found " + sequenceNumber;
+    }
+
+    if (!previousRecordHash.equals(storedPreviousRecordHash)) {
+      return "Previous hash mismatch at sequence " + sequenceNumber;
+    }
+
+    return null;
+  }
+
+  private boolean recordHashMatches(JsonObject journalObject, String storedRecordHash) {
+    journalObject.remove("recordHash");
+    journalObject.remove("signature");
+
+    String canonicalJson = gson.toJson(journalObject);
+    String calculatedHash = auditCrypto.sha256Hex(canonicalJson);
+    return calculatedHash.equals(storedRecordHash);
+  }
+
+  private boolean signatureMatches(String storedRecordHash, String storedSignature) {
+    return publicKey == null
+        || storedSignature.isBlank()
+        || auditCrypto.verifySignature(publicKey, storedRecordHash, storedSignature);
+  }
+
+  private record RecordVerification(
+      boolean valid,
+      String recordHash,
+      String error
+  ) {
+
+    private static RecordVerification successful(String recordHash) {
+      return new RecordVerification(true, recordHash, "");
+    }
+
+    private static RecordVerification failed(String error) {
+      return new RecordVerification(false, "", error);
+    }
   }
 
   private record VerificationState(
