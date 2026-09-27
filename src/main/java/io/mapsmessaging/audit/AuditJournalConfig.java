@@ -21,6 +21,7 @@
 package io.mapsmessaging.audit;
 
 import java.nio.file.Path;
+import java.time.Clock;
 import java.security.PrivateKey;
 import java.security.interfaces.EdECPublicKey;
 import lombok.Builder;
@@ -35,6 +36,9 @@ public class AuditJournalConfig {
   private final Path journalRoot;
   private final PrivateKey signingKey;
   private final EdECPublicKey verificationKey;
+
+  @Builder.Default
+  private final Clock clock = Clock.systemDefaultZone();
 
   @Builder.Default
   private final long maxJournalSizeBytes = DEFAULT_MAX_JOURNAL_SIZE_BYTES;
