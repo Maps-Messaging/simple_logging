@@ -69,7 +69,7 @@ class AuditVerifierTest {
   @Test
   void shouldRejectSignatureMismatch() throws Exception {
     JournalFixture fixture = writeJournal();
-    mutateJournal(fixture.path(), "signature", "AAAA");
+    corruptSignature(fixture.path());
 
     AuditVerifier.VerificationResult result = verifier(fixture.keyPair()).verifyJournal(fixture.path());
 
@@ -111,6 +111,18 @@ class AuditVerifierTest {
 
   private AuditVerifier verifier(KeyPair keyPair) {
     return new AuditVerifier((EdECPublicKey) keyPair.getPublic());
+  }
+
+  private void corruptSignature(Path path) throws IOException {
+    Gson gson = new Gson();
+    String line = Files.readString(path, StandardCharsets.UTF_8).trim();
+    var jsonObject = gson.fromJson(line, com.google.gson.JsonObject.class);
+    byte[] signature = java.util.Base64.getDecoder().decode(jsonObject.get("signature").getAsString());
+
+    signature[0] ^= 0x01;
+
+    jsonObject.addProperty("signature", java.util.Base64.getEncoder().encodeToString(signature));
+    Files.writeString(path, gson.toJson(jsonObject) + System.lineSeparator(), StandardCharsets.UTF_8);
   }
 
   private void mutateJournal(Path path, String property, Object value) throws IOException {
