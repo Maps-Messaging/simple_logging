@@ -23,6 +23,7 @@ package io.mapsmessaging.audit;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -106,12 +107,16 @@ public class AuditManifestWriter {
   private void writeAndForce(Path path, String data) throws IOException {
     byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
 
+    ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+
     try (FileChannel fileChannel = FileChannel.open(
         path,
         StandardOpenOption.CREATE_NEW,
         StandardOpenOption.WRITE
     )) {
-      fileChannel.write(java.nio.ByteBuffer.wrap(bytes));
+      while (byteBuffer.hasRemaining()) {
+        fileChannel.write(byteBuffer);
+      }
       fileChannel.force(true);
     }
   }
