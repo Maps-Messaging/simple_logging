@@ -15,6 +15,7 @@ public class AuditVerifier {
 
   private static final String GENESIS_HASH =
       "0000000000000000000000000000000000000000000000000000000000000000";
+  private static final String SIGNATURE = "signature";
 
   private final Gson gson;
   private final AuditCrypto auditCrypto;
@@ -104,8 +105,8 @@ public class AuditVerifier {
     long sequenceNumber = journalObject.get("sequenceNumber").getAsLong();
     String storedPreviousRecordHash = journalObject.get("previousRecordHash").getAsString();
     String storedRecordHash = journalObject.get("recordHash").getAsString();
-    String storedSignature = journalObject.has("signature")
-        ? journalObject.get("signature").getAsString()
+    String storedSignature = journalObject.has(SIGNATURE)
+        ? journalObject.get(SIGNATURE).getAsString()
         : "";
 
     String validationError = validateSequenceAndPreviousHash(
@@ -149,7 +150,7 @@ public class AuditVerifier {
 
   private boolean recordHashMatches(JsonObject journalObject, String storedRecordHash) {
     journalObject.remove("recordHash");
-    journalObject.remove("signature");
+    journalObject.remove(SIGNATURE);
 
     String canonicalJson = gson.toJson(journalObject);
     String calculatedHash = auditCrypto.sha256Hex(canonicalJson);

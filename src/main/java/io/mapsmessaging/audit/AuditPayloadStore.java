@@ -26,6 +26,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -36,10 +37,16 @@ public class AuditPayloadStore {
 
   private final Path payloadRoot;
   private final AuditCrypto auditCrypto;
+  private final Clock clock;
 
   public AuditPayloadStore(Path payloadRoot) {
+    this(payloadRoot, Clock.systemDefaultZone());
+  }
+
+  AuditPayloadStore(Path payloadRoot, Clock clock) {
     this.payloadRoot = payloadRoot;
     this.auditCrypto = new AuditCrypto();
+    this.clock = clock;
   }
 
   public AuditPayloadReference writePayload(
@@ -48,7 +55,7 @@ public class AuditPayloadStore {
       String fileName,
       byte[] payload
   ) throws IOException {
-    LocalDate localDate = LocalDate.now();
+    LocalDate localDate = LocalDate.now(clock);
     String safeTranslationId = safeTranslationId(translationId);
 
     Path payloadDirectory = payloadRoot
