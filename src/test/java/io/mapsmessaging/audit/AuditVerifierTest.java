@@ -69,7 +69,7 @@ class AuditVerifierTest {
   @Test
   void shouldRejectSignatureMismatch() throws Exception {
     JournalFixture fixture = writeJournal();
-    corruptSignature(fixture.path());
+    replaceSignatureWithDifferentKey(fixture.path());
 
     AuditVerifier.VerificationResult result = verifier(fixture.keyPair()).verifyJournal(fixture.path());
 
@@ -113,15 +113,17 @@ class AuditVerifierTest {
     return new AuditVerifier((EdECPublicKey) keyPair.getPublic());
   }
 
-  private void corruptSignature(Path path) throws IOException {
+  private void replaceSignatureWithDifferentKey(Path path) throws IOException {
     Gson gson = new Gson();
     String line = Files.readString(path, StandardCharsets.UTF_8).trim();
     var jsonObject = gson.fromJson(line, com.google.gson.JsonObject.class);
-    byte[] signature = java.util.Base64.getDecoder().decode(jsonObject.get("signature").getAsString());
+    String recordHash = jsonObject.get("recordHash").getAsString();
 
-    signature[0] ^= 0x01;
+    AuditKeyUtils keyUtils = new AuditKeyUtils();
+    KeyPair differentKeyPair = keyUtils.generateEd25519KeyPair();
+    String signature = new AuditCrypto().signBase64(differentKeyPair.getPrivate(), recordHash);
 
-    jsonObject.addProperty("signature", java.util.Base64.getEncoder().encodeToString(signature));
+    jsonObject.addProperty("signature", signature);
     Files.writeString(path, gson.toJson(jsonObject) + System.lineSeparator(), StandardCharsets.UTF_8);
   }
 
