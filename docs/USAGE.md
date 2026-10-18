@@ -1,4 +1,4 @@
-# Simple Logging 2.1.3: usage examples
+# Simple Logging 2.3.0-SNAPSHOT: usage examples
 
 Simple Logging provides two complementary APIs:
 
@@ -7,7 +7,7 @@ Simple Logging provides two complementary APIs:
 
 Use application logs for diagnostics and troubleshooting. Use the audit journal for events such as authentication decisions, administrative changes, and actions where preserving an attributable record matters. An `AUDIT`-level SLF4J message is **not** automatically written to the tamper-evident audit journal.
 
-The examples below target Java 17 and version 2.1.3.
+The examples below target Java 21 and version 2.3.0.
 
 ## Maven dependency
 
@@ -15,7 +15,7 @@ The examples below target Java 17 and version 2.1.3.
 <dependency>
   <groupId>io.mapsmessaging</groupId>
   <artifactId>simple_logging</artifactId>
-  <version>2.1.3</version>
+  <version>2.3.0-SNAPSHOT</version>
 </dependency>
 ~~~
 
