@@ -1,6 +1,6 @@
-# Simple Logging 2.1.3
+# Simple Logging 2.2.0
 
-Version 2.1.3 adds a tamper-evident audit journal, fixes exception handling in the logging API, and improves reliability when writing and verifying audit records.
+Version 2.2.0 adds a tamper-evident audit journal, fixes exception handling in the logging API, and improves reliability when writing and verifying audit records.
 
 ## New: audit journal
 
