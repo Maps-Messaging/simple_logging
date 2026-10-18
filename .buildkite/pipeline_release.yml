@@ -3,5 +3,5 @@ steps:
     command:
       - mvn clean deploy -P release
     agents:
-      queue: "java_build_queue"
+      queue: "java_build_queue_aws"
 
