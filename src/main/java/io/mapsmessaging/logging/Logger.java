@@ -59,8 +59,17 @@ public class Logger {
    */
   public void log(LogMessage logMessage, Object... args) {
     if (logAt(logMessage)) {
-      if (logMessage.getParameterCount() != args.length) {
-        localLogger.warn("Invalid number of arguments for the log messages, expected {} received {}", logMessage.getParameterCount(), args.length);
+      int suppliedParameterCount = args.length;
+      if (suppliedParameterCount > 0 && args[suppliedParameterCount - 1] instanceof Throwable) {
+        suppliedParameterCount--;
+      }
+
+      if (logMessage.getParameterCount() != suppliedParameterCount) {
+        localLogger.warn(
+            "Invalid number of arguments for the log message, expected {} received {}",
+            logMessage.getParameterCount(),
+            suppliedParameterCount
+        );
       }
 
       ThreadContext.put(DIVISION, logMessage.getCategory().getDivision());
@@ -114,48 +123,10 @@ public class Logger {
    * @param args A list of variable arguments to be logged
    */
   public void log(LogMessage logMessage, Throwable throwable, Object... args) {
-    if(logAt(logMessage)) {
-      log(logMessage, args);
-      ThreadContext.put(DIVISION, logMessage.getCategory().getDivision());
-      ThreadContext.put(CATEGORY, logMessage.getCategory().getDescription());
-      switch (logMessage.getLevel()) {
-        case TRACE:
-          localLogger.trace(logMessage.getMessage(), throwable);
-          break;
-
-        case DEBUG:
-          localLogger.debug(logMessage.getMessage(), throwable);
-          break;
-
-        case INFO:
-          localLogger.info(logMessage.getMessage(), throwable);
-          break;
-
-        case WARN:
-          localLogger.warn(logMessage.getMessage(), throwable);
-          break;
-
-        case ERROR:
-          localLogger.error(logMessage.getMessage(), throwable);
-          break;
-
-        case FATAL:
-          localLogger.error(fatal, logMessage.getMessage(), throwable);
-          break;
-
-        case AUTH:
-          localLogger.error(authentication, logMessage.getMessage(), throwable);
-          break;
-
-        case AUDIT:
-          localLogger.error(audit, logMessage.getMessage(), throwable);
-          break;
-
-        default:
-      }
-      ThreadContext.remove(CATEGORY);
-      ThreadContext.remove(DIVISION);
-    }
+    Object[] arguments = new Object[args.length + 1];
+    System.arraycopy(args, 0, arguments, 0, args.length);
+    arguments[args.length] = throwable;
+    log(logMessage, arguments);
   }
 
   private boolean logAt(LogMessage logMessage) {

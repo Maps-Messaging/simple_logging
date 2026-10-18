@@ -1,5 +1,7 @@
 # Simple Logging
 
+For complete Java examples of application logging and audit journaling, see the [usage examples](docs/USAGE.md).
+
 This very simple wrapper over slf4j is not meant to take away or add any logging features, instead, it simply provides a single class for all the log messages.
 
 The actual log code then is simply a call to the log message enum that needs to be logged. This becomes handy when looking for specific log messages or if you want to 
@@ -34,8 +36,8 @@ Include the dependency
     <!-- Simple logging API -->    
     <dependency>
       <groupId>io.mapsmessaging</groupId>
-      <artifactId>Simple_Logging</artifactId>
-      <version>2.1.0</version>
+      <artifactId>simple_logging</artifactId>
+      <version>2.1.3</version>
     </dependency>
 ```    
 
